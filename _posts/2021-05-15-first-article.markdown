@@ -1,6 +1,6 @@
 ---
 layout: article
-title: first article
+title: first test article
 mathjax: true
 key: a00001
 ---
