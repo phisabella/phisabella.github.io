@@ -3,3 +3,5 @@ _site
 .jekyll-cache
 .jekyll-metadata
 vendor
+1.bat
+bundle exec jekyll serve.bat

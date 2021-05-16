@@ -2,6 +2,7 @@
 layout: article
 title: first article
 mathjax: true
+key: a00001
 ---
 
 There are three authentication factors into which different types of authentication can be categorized:
@@ -34,7 +35,7 @@ $\color{#FF00FF}{紫}$
 
 you can change X-Forwarded-For to change your ip 
 
- ![image-20210515211748781](image-20210515211748781.png)
+ ![image-20210515211748781](/pics/image-20210515211748781.png)
 
 - Flawed     brute-force protection
 
