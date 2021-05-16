@@ -187,6 +187,49 @@ markdown    : kramdown
 highlighter : rouge
 permalink   : date
 
+
+
+# exclude:
+#   - CHANGELOG.md
+#   - HOW_TO_RELEASE.md
+#   - Gemfile
+#   - Gemfile.lock
+#   - LICENSE
+#   - README-*.md
+#   - README.md
+#   - gulpfile.js
+#   - jekyll-text-theme.gemspec
+#   - package-lock.json
+#   - package.json
+#   - /docs
+#   - /node_modules
+#   - /screenshots
+#   - /test
+#   - /vendor
+
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: article
+      sharing: true
+      license: true
+      aside:
+        toc: true
+      # show_edit_on_github: true
+      # show_subscribe: true
+      pageview: true
+
+
+## => Plugins
+##############################
+plugins:
+  - jekyll-feed
+  - jekyll-paginate
+  - jekyll-sitemap
+  - jemoji
+
 # Exclude from processing.
 # The following items will not be processed, by default.
 # Any item listed under the `exclude:` key here will be automatically added to
