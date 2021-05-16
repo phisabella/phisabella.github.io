@@ -167,6 +167,6 @@ retrive data
 
 ### SQL injection cheat sheet
 
-链接包含常见不同数据库的绕过方法
+链接包含常见不同数据库的各种探测绕过技巧
 
 [SQL injection cheat sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet)
