@@ -9,6 +9,35 @@ key: a00003
 
 这里会持续更新学习过程中查阅的英语词句。 [Web Security Academy](https://portswigger.net/web-security/learning-path)上的
 
+## XXE
+
+[What is XXE (XML external entity) injection? Tutorial & Examples | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/xxe)
+
+[What is a blind XXE attack? Tutorial & Examples | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/xxe/blind)
+
+
+
+|                                         |                                   |
+| --------------------------------------- | --------------------------------- |
+| interfere                               | 干涉                              |
+| escalate                                | 升级,加剧                         |
+| underlying  server                      | 底层服务器                        |
+| arbitrary                               | 任意的;武断的;                    |
+| induced                                 | 诱导                              |
+| input  validation                       | 输入验证                          |
+| ampersand                               | 符号（* &(表示and的符号)）        |
+| newline  characters                     | 换行符                            |
+| parsers                                 | 解析器                            |
+| repurposing                             | 重新调整                          |
+| loophole                                | 漏洞                              |
+| language  specification                 | 语言规范；规格;规范;明细单;说明书 |
+| This is  actually quite straightforward | easy                              |
+| enumerate                               | 枚举                              |
+| hidden  attack surface                  | 隐藏攻击面                        |
+| PARAMETRIC  ENTITIES                    | 参数化实体                        |
+
+
+
 ## SQL
 
 
@@ -136,3 +165,58 @@ key: a00003
 | At no  point                                                 | 绝不                                                  |
 | snippet                                                      | 代码段   一小条(消息);一则(新闻);一小段(谈话、音乐等) |
 | Manually  identifying gadget chains can be a fairly **arduous** process | 艰苦的                                                |
+| off-the-shelf                                                | 现成的                                                |
+| cumbersome                                                   | 麻烦                                                  |
+| single  apostrophe                                           | 单撇号                                                |
+| masquerading                                                 | 伪装                                                  |
+
+## os-command-injection
+
+https://portswigger.net/web-security/os-command-injection
+
+|           |        |
+| --------- | ------ |
+| backticks | 倒引号 |
+
+
+
+## Business logic vulnerabilities 
+
+[Business logic vulnerabilities | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/logic-flaws)
+
+|                                                    |                          |
+| -------------------------------------------------- | ------------------------ |
+| exploit  behavioral quirks                         | 利用行为怪癖             |
+| dictate                                            | 规定，指使               |
+| deviates                                           | 偏离                     |
+| inadvertently                                      | 疏忽地                   |
+| **creep** into an application                      | 潜入                     |
+| imposed                                            | 推行，采用(规章制度)     |
+| lax                                                | 松懈                     |
+| **cautionary** examples                            | 劝告的 ; 告诫的 ; 警告的 |
+| **Inconsistent**                                   | 不一致的                 |
+| When **probing** for logic flaws                   | 探索;追问                |
+| **bizarre** application behavior                   | 极其怪诞的 ; 异乎寻常的  |
+| hit the $1000 **threshold**                        | 门槛                     |
+| it no  longer satisfies the **intended  criteria** | 预期的标准               |
+
+
+
+## information-disclosure
+
+https://portswigger.net/web-security/information-disclosure
+
+|                                                              |                                                              |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| in a  normal fashion                                         | 以正常的方式                                                 |
+| tunnel  vision                                               | 井底之蛙                                                     |
+| Verbose                                                      | 冗长的                                                       |
+| devised                                                      | 设计                                                         |
+| access  controls are applied  programmatically  **with reference to** this  matrix | 关于，根据                                                   |
+| **Discretionary** access control                             | 自由决定的；酌情行事的                                       |
+| assign or delegate                                           | 指派或委派                                                   |
+| This model  is highly **granular**                           | 这个模型是高度**细粒度（由颗粒构成的** **;** **含颗粒的）**的 |
+| object  subject                                              | 对象；主体                                                   |
+| purchase  clerk                                              | 采购员（职员;簿记员;文书）                                   |
+| rigorous front-end controls                                  | 严格的前端控制                                               |
+| onward  attacks                                              | （向前的）转发攻击                                           |
