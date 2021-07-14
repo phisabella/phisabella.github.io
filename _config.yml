@@ -20,11 +20,11 @@
 
 ## => Site Settings
 ##############################
-text_skin: orange # "default" (default), "dark", "forest", "ocean", "chocolate", "orange"
+text_skin: default # "default" (default), "dark", "forest", "ocean", "chocolate", "orange"
 highlight_theme: tomorrow-night # "default" (default), "tomorrow", "tomorrow-night", "tomorrow-night-eighties", "tomorrow-night-blue", "tomorrow-night-bright"
 url     : # the base hostname & protocol for your site e.g. https://www.someone.com
 baseurl : # does not include hostname
-title   : study notes
+title   : Hexagram's study notes
 description: > # this means to ignore newlines until "Language & timezone"
   a place for my study notes
 

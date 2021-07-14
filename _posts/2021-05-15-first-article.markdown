@@ -3,6 +3,8 @@ layout: article
 title: first test article
 mathjax: true
 key: a00001
+tag: 
+- Test
 mode: immersive
 header:
   theme: dark

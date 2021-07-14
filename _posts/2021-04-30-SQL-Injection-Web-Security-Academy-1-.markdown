@@ -3,6 +3,9 @@ layout: article
 title: SQL injection--Web Security Academy 1
 mathjax: true
 key: a00002	
+tag: 
+- Academy
+- SQLi
 mode: immersive
 header:
   theme: dark

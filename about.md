@@ -15,10 +15,7 @@ article_header:
 
 这个个人的Github Pages 主要是用来记录自己平时学习的笔记，在梳理原始笔记并输出为.md格式的过程中再梳理复习一遍学过的内容。
 
-### Github Pages 使用的TeXt模板地址
+### [Github Pages 使用的TeXt模板地址](https://github.com/kitian616/jekyll-TeXt-theme)
 
- [kitian616/jekyll-TeXt-theme: 💎 🐳 A super customizable Jekyll theme for personal site, team site, blog, project, documentation, etc. (github.com)](https://github.com/kitian616/jekyll-TeXt-theme)
+### [TeXt设置文档](https://tianqi.name/jekyll-TeXt-theme/docs/en/quick-start)
 
-### TeXt设置文档
-
-[kitian616/jekyll-TeXt-theme: 💎 🐳 A super customizable Jekyll theme for personal site, team site, blog, project, documentation, etc. (github.com)](https://github.com/kitian616/jekyll-TeXt-theme)

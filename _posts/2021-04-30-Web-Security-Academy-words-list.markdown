@@ -3,6 +3,9 @@ layout: article
 title: Web Security Academy words list
 mathjax: true
 key: a00003
+tag: 
+- Academy
+- words
 mode: immersive
 header:
   theme: dark
