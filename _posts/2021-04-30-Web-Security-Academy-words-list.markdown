@@ -3,6 +3,16 @@ layout: article
 title: Web Security Academy words list
 mathjax: true
 key: a00003
+mode: immersive
+header:
+  theme: dark
+article_header:
+  type: overlay
+  theme: dark
+  background_color: '#203028'
+  background_image:
+    gradient: 'linear-gradient(135deg, rgba(34, 139, 87 , .4), rgba(139, 34, 139, .4))'
+    src: /bkgs/1.png
 ---
 
 ## 前言
@@ -11,9 +21,9 @@ key: a00003
 
 ## XXE
 
-[What is XXE (XML external entity) injection? Tutorial & Examples | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/xxe)
+[What is XXE (XML external entity) injection? Tutorial & Examples ](https://portswigger.net/web-security/xxe)
 
-[What is a blind XXE attack? Tutorial & Examples | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/xxe/blind)
+[What is a blind XXE attack? Tutorial & Examples ](https://portswigger.net/web-security/xxe/blind)
 
 
 
@@ -172,7 +182,7 @@ key: a00003
 
 ## os-command-injection
 
-https://portswigger.net/web-security/os-command-injection
+[os-command-injection  ](https://portswigger.net/web-security/os-command-injection)
 
 |           |        |
 | --------- | ------ |
@@ -182,7 +192,7 @@ https://portswigger.net/web-security/os-command-injection
 
 ## Business logic vulnerabilities 
 
-[Business logic vulnerabilities | Web Security Academy (portswigger.net) ](https://portswigger.net/web-security/logic-flaws)
+[Business logic vulnerabilities  ](https://portswigger.net/web-security/logic-flaws)
 
 |                                                    |                          |
 | -------------------------------------------------- | ------------------------ |
@@ -227,7 +237,7 @@ https://portswigger.net/web-security/os-command-injection
 
 [What is SSRF (Server-side request forgery)? ](https://portswigger.net/web-security/ssrf)
 
-[Cracking the lens: targeting HTTP's hidden attack-surface | PortSwigger Research ](https://portswigger.net/research/cracking-the-lens-targeting-https-hidden-attack-surface#aux)
+[Cracking the lens: targeting HTTP's hidden attack-surface  ](https://portswigger.net/research/cracking-the-lens-targeting-https-hidden-attack-surface#aux)
 
 |                                                              |                                                              |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -309,7 +319,7 @@ https://portswigger.net/web-security/os-command-injection
 
 ## DOM-based vulnerabilities 
 
-[DOM-based vulnerabilities | Web Security Academy (portswigger.net) ](https://portswigger.net/web-security/dom-based)
+[DOM-based vulnerabilities ](https://portswigger.net/web-security/dom-based)
 
 |                              |                    |
 | ---------------------------- | ------------------ |
@@ -322,7 +332,7 @@ https://portswigger.net/web-security/os-command-injection
 
 ## WebSockets security vulnerabilities 
 
-[Testing for WebSockets security vulnerabilities | Web Security Academy (portswigger.net) ](https://portswigger.net/web-security/websockets)
+[Testing for WebSockets security vulnerabilities ](https://portswigger.net/web-security/websockets)
 
 |              |                                             |
 | ------------ | ------------------------------------------- |
@@ -334,7 +344,7 @@ https://portswigger.net/web-security/os-command-injection
 
 ## Server-side template injection 
 
-[Server-side template injection | Web Security Academy (portswigger.net) ](https://portswigger.net/web-security/server-side-template-injection)
+[Server-side template injection  ](https://portswigger.net/web-security/server-side-template-injection)
 
 |                      |          |
 | -------------------- | -------- |
@@ -347,7 +357,7 @@ https://portswigger.net/web-security/os-command-injection
 
 ## Web cache poisoning
 
-[Web cache poisoning | Web Security Academy (portswigger.net) ](https://portswigger.net/web-security/web-cache-poisoning)
+[Web cache poisoning  ](https://portswigger.net/web-security/web-cache-poisoning)
 
 |                                    |                       |
 | ---------------------------------- | --------------------- |
@@ -368,7 +378,7 @@ https://portswigger.net/web-security/os-command-injection
 
 ## HTTP Host header vulnerabilities
 
-[How to identify and exploit HTTP Host header vulnerabilities | Web Security Academy (portswigger.net) ](https://portswigger.net/web-security/host-header/exploiting)
+[How to identify and exploit HTTP Host header vulnerabilities  ](https://portswigger.net/web-security/host-header/exploiting)
 
 |        |               |
 | ------ | ------------- |
@@ -380,7 +390,7 @@ https://portswigger.net/web-security/os-command-injection
 
 ## request smuggling
 
-[What is HTTP request smuggling? Tutorial & Examples | Web Security Academy (portswigger.net) ](https://portswigger.net/web-security/request-smuggling)
+[What is HTTP request smuggling? ](https://portswigger.net/web-security/request-smuggling)
 
 |                   |                |
 | ----------------- | -------------- |

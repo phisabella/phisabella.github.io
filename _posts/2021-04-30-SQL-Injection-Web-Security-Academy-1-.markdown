@@ -1,13 +1,18 @@
 ---
 layout: article
 title: SQL injection--Web Security Academy 1
-articles:
-  data_source: site.sample_page
-  show_excerpt: true
-  show_readmore: true
-  show_info: true
 mathjax: true
 key: a00002	
+mode: immersive
+header:
+  theme: dark
+article_header:
+  type: overlay
+  theme: dark
+  background_color: '#203028'
+  background_image:
+    gradient: 'linear-gradient(135deg, rgba(34, 139, 87 , .4), rgba(139, 34, 139, .4))'
+    src: /docs/assets/images/cover3.jpg
 ---
 
 ## 前言
