@@ -220,3 +220,167 @@ https://portswigger.net/web-security/information-disclosure
 | purchase  clerk                                              | 采购员（职员;簿记员;文书）                                   |
 | rigorous front-end controls                                  | 严格的前端控制                                               |
 | onward  attacks                                              | （向前的）转发攻击                                           |
+
+
+
+## SSRF
+
+[What is SSRF (Server-side request forgery)? ](https://portswigger.net/web-security/ssrf)
+
+[Cracking the lens: targeting HTTP's hidden attack-surface | PortSwigger Research](https://portswigger.net/research/cracking-the-lens-targeting-https-hidden-attack-surface#aux)
+
+|                                                              |                                                              |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| security  posture                                            | 安全态                                                       |
+| final **octet** of the IP                                    | IP地址的最后八位                                             |
+| case  variation.                                             | 大小写变化                                                   |
+| The URL **specification** contains a number  of features that **are liable to**  be overlooked when implementing **ad  hoc** parsing and validation of URLs: | 特性，规格；  临时的，专门，特殊的（  URL规范包含许多特性，这些特性在实现URL的特殊解析和验证时容易被忽略：） |
+| one-way  nature                                              | 单向性                                                       |
+| trivially                                                    | 微不足道的，平凡地，平凡                                     |
+| out-of-band  (OAST)                                          | Out-of-band application  security testing (OAST)             |
+| Another **avenue** for exploiting blind  SSRF vulnerabilities | 大街 ; 林荫道 ; 选择 ; 途径 ; 手段                           |
+| a **lens**  of                                               |                                                              |
+| how to  use **malformed** requests  and **esoteric** headers to **coax** these systems | 畸形的；深奥，难领略的；哄劝 , 劝诱                          |
+| segregate                                                    | 隔离                                                         |
+| masquerade                                                   | 掩藏;掩饰                                                    |
+| Amongst  other things                                        | 除此之外                                                     |
+| impersonate                                                  | 冒充                                                         |
+| testing each **permutation** separately                      | 分别测试每个**排列**                                         |
+
+
+
+## XSS
+
+[What is cross-site scripting (XSS) and how to prevent it? ](https://portswigger.net/web-security/cross-site-scripting)
+
+|                                                              |                                                              |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| cursor                                                       | 光标                                                         |
+| hash                                                         | #                                                            |
+| angle  brackets                                              | 尖括号                                                       |
+| pseudo-protocol                                              | 伪协议                                                       |
+| **enclosing** the existing  JavaScript                       | 包含                                                         |
+| backslashes                                                  | 反斜杠                                                       |
+| single  quotes **escaped**                                   | 转义                                                         |
+| parentheses                                                  | 圆括号                                                       |
+| apostrophe                                                   | 撇号                                                         |
+| JavaScript template **literals** are **string literals** that allow **embedded**  JavaScript expressions. The embedded expressions **are evaluated** and are normally **concatenated** into the surrounding text. Template literals are **encapsulated** in **backticks（****`****）**  instead of normal **quotation marks（****‘****）**, and  embedded expressions are identified using the ${...} syntax. | JavaScript模板**文本**是允许**嵌入**JavaScript表达式的**字符串文本**。嵌入的表达式将**被计算**并通常**连接（串联）**到周围的文本中。模板文本被**封装（概括** **;** **压缩）**在`中而不是普通的**引号**中，嵌入的表达式使用${…}语法进行标识 |
+| into                                                         | 转换                                                         |
+| circumvented  with sufficient **ingenuity**.                 | 独创力 ; 聪明才智                                            |
+| colon                                                        | 冒号                                                         |
+| double curly braces                                          | 双花括号                                                     |
+| arithmetic  operator                                         | 算术运算符                                                   |
+| subtraction operator                                         | 减法运算符                                                   |
+| **mitigate** against some common  attacks.                   | 减轻                                                         |
+| semicolons                                                   | 分号                                                         |
+| wildcards                                                    | 通配符                                                       |
+| **Dangling** markup injection                                | 挂起；垂悬;晃晃悠悠                                          |
+| cutting-edge                                                 | 先进的                                                       |
+
+
+
+## CSRF
+
+[What is CSRF (Cross-site request forgery)? Tutorial & Examples | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/csrf)
+
+|                                                              |                  |
+| ------------------------------------------------------------ | ---------------- |
+| caveats                                                      | 注意事项         |
+| pseudo-random                                                | 伪随机           |
+| which is **inadvertently misspelled** in the  HTTP **specification** | 无意地;拼错;规范 |
+| prescribes                                                   | 规定; 给…开      |
+| exacerbate                                                   | 加剧             |
+| Intranets                                                    | 内部网           |
+
+
+
+## Clickjacking
+
+|               |        |
+| ------------- | ------ |
+| incorporation | 合并   |
+| overlaid      | 覆盖   |
+| overlap       | 重叠   |
+| opacity       | 不透明 |
+
+
+
+## DOM-based vulnerabilities 
+
+[DOM-based vulnerabilities | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/dom-based)
+
+|                              |                    |
+| ---------------------------- | ------------------ |
+| hierarchical  representation | 层次表示           |
+| caveats                      | 注意事项           |
+| defacement                   | 诽谤               |
+| DOM  clobbering              | 狠击 ; 狠揍 ; 猛打 |
+
+
+
+## WebSockets security vulnerabilities 
+
+[Testing for WebSockets security vulnerabilities | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/websockets)
+
+|              |                                             |
+| ------------ | ------------------------------------------- |
+| full duplex  | 全双工                                      |
+| stale        | 请求过期,不新鲜的;(空气)污浊的;(烟味)难闻的 |
+| masquerading | 伪装                                        |
+
+
+
+## Server-side template injection 
+
+[Server-side template injection | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/server-side-template-injection)
+
+|                      |          |
+| -------------------- | -------- |
+| volatile             | 不稳定的 |
+| template  directives | 模板指令 |
+| stumbled  across     | 偶然发现 |
+| ruled out            | 排除     |
+
+
+
+## Web cache poisoning
+
+[Web cache poisoning | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/web-cache-poisoning)
+
+|                                    |                       |
+| ---------------------------------- | --------------------- |
+| fixed  amount                      | 固定（额）            |
+| inextricably                       | 不可分开地;密不可分地 |
+| indefinitely                       | 无限期地              |
+| how often  the cache is **purged** | 清除                  |
+| rudimentary  way                   | 基本方法              |
+| tailor the  attack                 | 定制攻击              |
+| discrepancy                        | 差异                  |
+| **de  facto** standard             | **事实上的**标准      |
+| delimiter                          | **分隔符**            |
+| gives  precedence to               | 优先考虑              |
+| In select  cases                   | 在某些情况下          |
+| pseudo-POST                        | 虚假的                |
+
+
+
+## HTTP Host header vulnerabilities
+
+[How to identify and exploit HTTP Host header vulnerabilities | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/host-header/exploiting)
+
+|        |               |
+| ------ | ------------- |
+| indent | 缩进，订单    |
+| intact | 完好无损;完整 |
+| albeit | 尽管;虽然     |
+
+
+
+## request smuggling
+
+[What is HTTP request smuggling? Tutorial & Examples | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/request-smuggling)
+
+|                   |                |
+| ----------------- | -------------- |
+| chunked  encoding | 块编码         |
+| departure         | 离开;起程;出发 |
