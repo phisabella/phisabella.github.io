@@ -3,6 +3,9 @@ layout: article
 title: first test article
 mathjax: true
 key: a00001
+cover: /bkgs/1.png
+modify_date: 2021-07-14
+show_author_profile: true
 tag: 
 - Test
 mode: immersive

@@ -3,6 +3,9 @@ layout: article
 title: Web Security Academy words list
 mathjax: true
 key: a00003
+cover: /bkgs/1.png
+modify_date: 2021-07-14
+show_author_profile: true
 tag: 
 - Academy
 - words
