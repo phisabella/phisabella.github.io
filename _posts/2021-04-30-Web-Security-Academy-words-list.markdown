@@ -182,7 +182,7 @@ https://portswigger.net/web-security/os-command-injection
 
 ## Business logic vulnerabilities 
 
-[Business logic vulnerabilities | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/logic-flaws)
+[Business logic vulnerabilities | Web Security Academy (portswigger.net) ](https://portswigger.net/web-security/logic-flaws)
 
 |                                                    |                          |
 | -------------------------------------------------- | ------------------------ |
@@ -204,7 +204,7 @@ https://portswigger.net/web-security/os-command-injection
 
 ## information-disclosure
 
-https://portswigger.net/web-security/information-disclosure
+[information-disclosure ](https://portswigger.net/web-security/information-disclosure)
 
 |                                                              |                                                              |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -227,7 +227,7 @@ https://portswigger.net/web-security/information-disclosure
 
 [What is SSRF (Server-side request forgery)? ](https://portswigger.net/web-security/ssrf)
 
-[Cracking the lens: targeting HTTP's hidden attack-surface | PortSwigger Research](https://portswigger.net/research/cracking-the-lens-targeting-https-hidden-attack-surface#aux)
+[Cracking the lens: targeting HTTP's hidden attack-surface | PortSwigger Research ](https://portswigger.net/research/cracking-the-lens-targeting-https-hidden-attack-surface#aux)
 
 |                                                              |                                                              |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -281,7 +281,7 @@ https://portswigger.net/web-security/information-disclosure
 
 ## CSRF
 
-[What is CSRF (Cross-site request forgery)? Tutorial & Examples | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/csrf)
+[What is CSRF (Cross-site request forgery) ](https://portswigger.net/web-security/csrf)
 
 |                                                              |                  |
 | ------------------------------------------------------------ | ---------------- |
@@ -296,6 +296,8 @@ https://portswigger.net/web-security/information-disclosure
 
 ## Clickjacking
 
+[What is Clickjacking? Tutorial & Examples ](portswigger.net)
+
 |               |        |
 | ------------- | ------ |
 | incorporation | 合并   |
@@ -307,7 +309,7 @@ https://portswigger.net/web-security/information-disclosure
 
 ## DOM-based vulnerabilities 
 
-[DOM-based vulnerabilities | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/dom-based)
+[DOM-based vulnerabilities | Web Security Academy (portswigger.net) ](https://portswigger.net/web-security/dom-based)
 
 |                              |                    |
 | ---------------------------- | ------------------ |
@@ -320,7 +322,7 @@ https://portswigger.net/web-security/information-disclosure
 
 ## WebSockets security vulnerabilities 
 
-[Testing for WebSockets security vulnerabilities | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/websockets)
+[Testing for WebSockets security vulnerabilities | Web Security Academy (portswigger.net) ](https://portswigger.net/web-security/websockets)
 
 |              |                                             |
 | ------------ | ------------------------------------------- |
@@ -332,7 +334,7 @@ https://portswigger.net/web-security/information-disclosure
 
 ## Server-side template injection 
 
-[Server-side template injection | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/server-side-template-injection)
+[Server-side template injection | Web Security Academy (portswigger.net) ](https://portswigger.net/web-security/server-side-template-injection)
 
 |                      |          |
 | -------------------- | -------- |
@@ -345,7 +347,7 @@ https://portswigger.net/web-security/information-disclosure
 
 ## Web cache poisoning
 
-[Web cache poisoning | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/web-cache-poisoning)
+[Web cache poisoning | Web Security Academy (portswigger.net) ](https://portswigger.net/web-security/web-cache-poisoning)
 
 |                                    |                       |
 | ---------------------------------- | --------------------- |
@@ -366,7 +368,7 @@ https://portswigger.net/web-security/information-disclosure
 
 ## HTTP Host header vulnerabilities
 
-[How to identify and exploit HTTP Host header vulnerabilities | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/host-header/exploiting)
+[How to identify and exploit HTTP Host header vulnerabilities | Web Security Academy (portswigger.net) ](https://portswigger.net/web-security/host-header/exploiting)
 
 |        |               |
 | ------ | ------------- |
@@ -378,7 +380,7 @@ https://portswigger.net/web-security/information-disclosure
 
 ## request smuggling
 
-[What is HTTP request smuggling? Tutorial & Examples | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/request-smuggling)
+[What is HTTP request smuggling? Tutorial & Examples | Web Security Academy (portswigger.net) ](https://portswigger.net/web-security/request-smuggling)
 
 |                   |                |
 | ----------------- | -------------- |
