@@ -20,42 +20,32 @@ article_header:
     src: /bkgs/2.png
 ---
 
-There are three authentication factors into which different types of authentication can be categorized:
+## 一些文字效果，随用随取
 
-- Something you $\color{#FF0000}{know}$ , such as a password
-- Something you **have**, that is, a physical object like a mobile     phone or security token
-- Something you **are** or do, for example, your biometrics or     patterns of behavior
+-  颜色+ 斜体 
 
-- Vulnerabilities     in password-based login 
+  $\color{#FF0000}{know}$
 
-- - Username      enumeration
-$\color{#FF0000}{知道}$ 
-知道
-you should pay particular attention to any differences in:
-<font color="red">中间写上想说的话</font>
-<font color="red">set the password to a long long one ,check the response time</font>
-- <font color="orange">awdawdwad </font>**Status codes:like 200 302** 
+  $\color{#FF0000}{知道}$ 
 
-**Error messages**: any difference , even a ','
+-  颜色
+  <font color="red">中间写上想说的话</font>
+  <font color="red">set the password to a long long one ,check the response time</font>
 
-**Response times**: set the password to a long long one ,check the response time.
+  <font color="orange">awdawdwad </font>
 
-$\color{#FF0000}{红}$ 
-$\color{#FF7D00}{set the password to a long long one ,check the response time.}$ 
-$\color{#FFFF00}{黄}$ 
-$\color{#00FF00}{绿}$  
-$\color{#0000FF}{蓝}$ 
-$\color{#00FFFF}{靛}$ 
-$\color{#FF00FF}{紫}$ 
+  $\color{#FF0000}{红}$ 
+  $\color{#FF7D00}{橙}$ 
+  $\color{#FFFF00}{黄}$ 
+  $\color{#00FF00}{绿}$ 
+  $\color{#0000FF}{蓝}$ 
+  $\color{#00FFFF}{靛}$ 
+  $\color{#FF00FF}{紫}$ 
 
-you can change X-Forwarded-For to change your ip 
+-  图片
+   ![image-20210515211748781](/pics/image-20210515211748781.png)
 
- ![image-20210515211748781](/pics/image-20210515211748781.png)
 
-- Flawed     brute-force protection
 
-- - **IP block**
+## 随笔
 
-  - - **change it**
-    - **login       and logout** **，有些登陆进去后会重置失败次数**
-    - **一次传多个密码？？？**
