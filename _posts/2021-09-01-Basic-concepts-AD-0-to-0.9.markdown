@@ -572,11 +572,24 @@ other [important groups](https://adsecurity.org/?p=3700)
 
 | **DNSAdmins**                   | [DNSAdmins](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#bkmk-dnsadmins)能允许成员可用任意DLL [execute   code in Domain Controllers](https://www.semperis.com/blog/dnsadmins-revisited/) |
 | ------------------------------- | ------------------------------------------------------------ |
-| **Protected Users**             | [Protected Users](https://docs.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/protected-users-security-group)组，增强安全，成员**不允许**：<br/> ~~1. 用NTLM认证（仅限Kerberos）<br/> 2.Kerberos预认证用DES或者RC4加密类型 <br/> 3.通过被约束（委派？）或不被约束的授权来授权（？）<br/> 4.在最初的四小时生存期之后续约Kerberos TGT。~~  <br/>能防止 [NTLM relay](https://en.hackndo.com/ntlm-relay/) or [Kerberos   Delegation](https://www.tarlogic.com/en/blog/kerberos-iii-how-does-delegation-work/) attacks |
-| **Schema Admins**               | **能修改****AD****数据库**schema                             |
-| **Account Operators**           | 修改域中许多组中的用户（管理不行），但可以修改Server Operators组 |
-| **Backup Operators**            | 能备份恢复DC文件，能登陆DC，可以借此修改DC中的文件           |
-| **Print Operators**             | 能登陆DC                                                     |
-| **Server Operators**            | 能登陆DC且修改配置文件                                       |
-| **Remote Desktop Users**        | 能通过RDP登陆DC                                              |
-| **Group Policy Creator Owners** | 能编辑域GPOs（Group Policy Objects）                         |
+| **Protected Users**             | [Protected Users](https://docs.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/protected-users-security-group)组，增强安全，成员**不允许**：<br/> ~~1. 用NTLM认证（仅限Kerberos）<br/> 2.Kerberos预认证用DES或者RC4加密类型 <br/> 3.被约束委托或非约束委托<br/> 4.在最初的四小时生存期之后续约Kerberos TGT。~~  <br/>能防止 [NTLM relay](https://en.hackndo.com/ntlm-relay/) or [Kerberos   Delegation](https://www.tarlogic.com/en/blog/kerberos-iii-how-does-delegation-work/) attacks |
+| **Schema Admins**               | [Schema Admins](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#schema-admins)  **能修改AD [database](https://zer1t0.gitlab.io/posts/attacking_ad/#database) **schema |
+| **Account Operators**           | [Account Operators](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#bkmk-accountoperators)， 修改域中许多组中的用户（管理不行），但可以修改Server Operators组 |
+| **Backup Operators**            | [Backup Operators](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#backup-operators)，能备份恢复DC文件，能登陆DC，可以借此修改DC中的文件 |
+| **Print Operators**             | [Print Operators](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#print-operators)，  能登陆DC |
+| **Server Operators**            | [Server Operators](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#server-operators)，  能登陆DC且修改配置文件 |
+| **Remote Desktop Users**        | [Remote Desktop Users](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#bkmk-remotedesktopusers)，  能通过[RDP](https://zer1t0.gitlab.io/posts/attacking_ad/#rdp)登陆DC |
+| **Group Policy Creator Owners** | [Group Policy Creator Owners](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#group-policy-creator-owners)，能编辑域[GPOs](https://zer1t0.gitlab.io/posts/attacking_ad/#group-policy)（Group Policy Objects） |
+
+还有很多[groups described in Microsoft docs](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#replicator)
+
+许多软件（微软）能自己添加用户组，如 [Exchange](https://zer1t0.gitlab.io/posts/attacking_ad/#exchange)可以[add privileged groups](https://adsecurity.org/?p=4119) 如Exchange Windows Permissions组，可用来实施DCSync攻击（如果没有正确升级/同步？）
+
+AD中根据[their scope](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#group-scope)可以把组分为三类：
+
+| 通用组（Universal ）  | 可以有同域森林的用户，并在相同林和域信任林中赋予用户权限，如Enterprise Admins |
+| --------------------- | ------------------------------------------------------------ |
+| 全局组（**Global** ） | 只能具有相同域的成员，并在相同林或信任域或林的域中授予权限，如 Domain Admins |
+| 域本地组              | 可以具有来自域或任何受信任域的成员，并仅在其域中授予权限，如Administrators |
+
+域组（及其域用户）也可以是计算机本地组的成员 ,例如，默认情况下，域管理员组会添加到计算机的管理员本地组。
