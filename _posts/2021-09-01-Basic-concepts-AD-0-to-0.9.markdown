@@ -27,7 +27,7 @@ article_header:
 
 这篇是AD from 0 to 0.9系列笔记的第一部分，主要是有关域，森林，域信任，用户，组的概念和基础，原文：
 
-https://zer1t0.gitlab.io/posts/attacking_ad/#why-this-post
+[Attacking Active Directory: 0 to 0.9](https://zer1t0.gitlab.io/posts/attacking_ad/#why-this-post) 
 
 （英语原文笔记写着爽但再看的时候完全不想看，因此这个系列完了会把Academy的笔记尽量翻译一次，以后应该也会尽量少做英文的笔记，实在是提不起复习的兴趣）
 
