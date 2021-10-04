@@ -21,7 +21,7 @@ article_header:
     src: /docs/assets/images/cover3.jpg
 ---
 
-## 前言
+# 前言
 
 上次被推荐了这篇文章，说是一篇文章讲完了内网，零零散散看了可能有快一个月，总算是看完了一遍。确实学到了很多有关内网的内容，不过文章比较侧重底层和基础一些，还有大量的链接，不容易和实践的记忆联系在一起。上面写的很多内容在自己打靶机或者真实渗透的时候完全感觉不到，但实践的时候看到一些理论相关的又能豁然开朗，可能这就是枯燥的理论学习的意义吧，希望自己的学习不要浮于表层，局限于工具的使用。
 
@@ -33,7 +33,7 @@ article_header:
 
 
 
-## 什么是AD
+# 什么是AD
 
 Active Directory是一个系统，它允许管理从中央服务器连接到同一网络中的一组计算机和用户
 
@@ -41,13 +41,13 @@ Active Directory通过维护一个集中化的数据库来管理，其中包含�
 
 **装了AD的服务器就是DC**
 
-## **Domains**
+# **Domains**
 
 首先，我们称之为Active Directory网络的是通常称为域的网络
 
 域是一组连接的计算机，它们共享Active Directory数据库，该数据库由域的中央服务器管理，这些服务器称为**域控制器(DC)**。
 
-### **Domain name**
+## **Domain name**
 
 每个域都有一个 DNS 名称
 
@@ -67,7 +67,7 @@ $env:USERDNSDOMAIN
 (Get-WmiObject Win32_ComputerSystem).Domain
 ```
 
-## **Forests**
+# **Forests**
 
 使用 DNS 名称非常有用，因为它允许为管理目的创建子域
 
@@ -108,7 +108,7 @@ UPNSuffixes           : {}
 
 **能够提供安全隔离的逻辑结构是森林**
 
-### **Functional Modes**
+## **Functional Modes**
 
 除了 Windows 计算机，域/森林也有自己的"版本"，即所谓的功能模式（ [functional mode](https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/raise-active-directory-domain-forest-functional-levels)）
 
@@ -130,7 +130,7 @@ PS C:\Users\Administrator\Downloads> (Get-ADDomain).DomainMode
 Windows2016Domain
 ```
 
-## **Trusts(域信任**)
+# **Trusts(域信任**)
 
 **同一域森林不同域的用户能相互访问是因为有域信任**
 
@@ -140,7 +140,7 @@ Windows2016Domain
 
 可以访问其他其他域计算机但不能登陆
 
-### **Trust direction**
+## **Trust direction**
 
 信任是一种**有向关系**，其中一方是信任方，另一方是受信任方。建立此链接后，受信任域的用户可以访问受信任域的资源
 
@@ -178,7 +178,7 @@ The command completed successfully
 
 outbound trust 即对方能访问自己，反之inbound 访问别的域
 
-### **Trust transitivity**
+## **Trust transitivity**
 
 [trust can be transitive or nontransitive](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-r2-and-2008/cc754612(v=ws.10))
 
@@ -189,7 +189,7 @@ outbound trust 即对方能访问自己，反之inbound 访问别的域
             <-------------------           <--------------------
 ```
 
-### **Trust types**
+## **Trust types**
 
 AD中的[trust types](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-r2-and-2008/cc730798(v=ws.10)#trust-types)：
 
@@ -200,7 +200,7 @@ AD中的[trust types](https://docs.microsoft.com/en-us/previous-versions/windows
 | **Realm（领域）** | 连接Active Directory和非Windows域的特殊域信任.               |
 | **Shortcut**      | 当森林中的两个域经常通信但没有直接连接时，可以通过创建直接快捷方式域信任来避免经过多个域信任 |
 
-### **Trust key**
+## **Trust key**
 
 使用域信任时，域的DC与目标域（或中间域）的DC之间存在通信。通信方式因所使用的协议（NTLM、Kerberos 等）而异，域控制器需要共享一个密钥来保持通信安全
 
@@ -208,7 +208,7 @@ AD中的[trust types](https://docs.microsoft.com/en-us/previous-versions/windows
 
 创建域信任时，域数据库中会创建 [trust account](https://zer1t0.gitlab.io/posts/attacking_ad/#trust-accounts)，域信任密钥就像用户密码一样存储在账户中（in the [NT hash](https://zer1t0.gitlab.io/posts/attacking_ad/#lm-nt-hash) and [Kerberos keys](https://zer1t0.gitlab.io/posts/attacking_ad/#user-kerberos-keys)）
 
-### More on trusts
+## More on trusts
 
 一些渗透域信任的链接
 
@@ -218,15 +218,15 @@ AD中的[trust types](https://docs.microsoft.com/en-us/previous-versions/windows
 - [Inter-Realm Key Roasting (well… within the first 30 days)](https://blog.xpnsec.com/inter-realm-key-roasting/)
 - [Not A Security Boundary: Breaking Forest Trusts](http://www.harmj0y.net/blog/redteaming/not-a-security-boundary-breaking-forest-trusts/)
 
-## **Users**
+# **Users**
 
 使用Active Directory的关键点之一是用户管理
 
 为了轻松管理活动目录中的用户，中央[数据库](https://zer1t0.gitlab.io/posts/attacking_ad/#database)中将用户存储为对象，可以从域的任何地方（有权利的话）操作和查询
 
-### **User properties**
+## **User properties**
 
-#### **User Identifiers**
+### **User Identifiers**
 
 **用户名存在SamAccountName** ，SID(Security Identifier)也能用来标识用户
 
@@ -251,7 +251,7 @@ RID 为最后四位 （代表安全主体，比如一个用户、计算机或组
 
 另外， [LDAP API](https://docs.microsoft.com/en-us/previous-versions/windows/desktop/ldap/distinguished-names)使用 `DistinguishedName`来标识对象，因此如果您使用LDAP（这是最常见的方法之一）查询数据库，您可能会通过其`DistinguishedName`看到对对象的引用。
 
-#### **User Secrets**
+### **User Secrets**
 
 Secret用来验证用户身份，密码会以派生而生成的secrets的形式保存：
 
@@ -270,7 +270,7 @@ DC可以验证Secrets，域计算机和用户均不能访问Secrets
 
 或从域控制器获取 `C:\Windows\NTDS\ntds.dit`文件。
 
-##### **LM/NT hashes**
+#### **LM/NT hashes**
 
 [LM and NT hashes ](https://medium.com/@petergombos/lm-ntlm-net-ntlmv2-oh-my-a9b235c58ed4)都存储在Windows本地 [SAM](https://en.wikipedia.org/wiki/Security_Account_Manager)和Active Directory NTDS数据库中，以分别对本地和域用户进行身份验证。这些散列，LM和NT都是**16字节长**。
 
@@ -341,7 +341,7 @@ NT hashes认识很重要，因为可以用
 
  [hashcat ](https://hashcat.net/)破解LM and NT原密码
 
-##### **Kerberos keys**
+#### **Kerberos keys**
 
 Kerberos密钥可用于请求在Kerberos身份验证中代表用户的**Kerberos ticket**，不同密钥有不同用法
 
@@ -370,7 +370,7 @@ contoso.local\anakin:des-cbc-md5:fbba85fbb63d04cb
 
 这些密钥可用于[Pass-The-Key](https://zer1t0.gitlab.io/posts/attacking_ad/#pass-the-key)攻击来获取伪造的用户票据来在服务认证
 
-#### UserAccountControl
+### UserAccountControl
 
 用户类的一个有趣属性是 [UserAccountControl](https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/useraccountcontrol-manipulate-account-properties)(UAC)（和User Account Control mechanism不一样）
 
@@ -383,7 +383,7 @@ contoso.local\anakin:des-cbc-md5:fbba85fbb63d04cb
 | **TRUSTED_TO_AUTH_FOR_DELEGATION** | Kerberos S4U2Self拓展启用，[SeEnableDelegationPrivilege](http://www.harmj0y.net/blog/activedirectory/the-most-dangerous-user-right-you-probably-have-never-heard-of/) required to modify it |
 | **TRUSTED_FOR_DELEGATION**         | 为此帐户及其服务启用Kerberos无约束委派，需要有[SeEnableDelegationPrivilege   ](http://www.harmj0y.net/blog/activedirectory/the-most-dangerous-user-right-you-probably-have-never-heard-of/)才能修改 |
 
-#### **Other user properties**
+### **Other user properties**
 
 | [Description](https://docs.microsoft.com/en-us/windows/win32/adschema/a-description) | A  description of the user，权限相关，可能会有密码           |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -393,7 +393,7 @@ contoso.local\anakin:des-cbc-md5:fbba85fbb63d04cb
 | **MemberOf**                                                 | 用户是其成员的组。此属性是逻辑属性，由组**Members**属性生成。 |
 | [PrimaryGroupID](https://docs.microsoft.com/en-us/windows/win32/adschema/a-primarygroupid) | 用户的主要组，这个组不在**MemberOf** 属性中出现              |
 
-### **Important Users**
+## **Important Users**
 
 net user /domain或者powershell能查询
 
@@ -416,7 +416,7 @@ POKEMON$
 
 **krbtgt** 账户也很重要，它的secrets (NT hash and Kerberos keys)被DC（只被DC使用）用来加密票据**TGTs** (Ticket Granting Ticket),能用来伪造[Golden Tickets](https://en.hackndo.com/kerberos-silver-golden-tickets/)；需要administrator privileges 来dump 域数据库才能拿到**krbtgt** 账户
 
-### **Computer accounts**
+## **Computer accounts**
 
 域中每台计算机都有自己的用户。
 
@@ -447,7 +447,7 @@ POKEMON$
 
 The [Find-DomainObjectPropertyOutlier](https://gist.github.com/HarmJ0y/184f9822b195c52dd50c379ed3117993) Cmdlet of [Powerview](https://github.com/BC-SECURITY/Empire/blob/master/data/module_source/situational_awareness/network/powerview.ps1) 可以用来找信息
 
-### **Trust accounts**
+## **Trust accounts**
 
 创建域信任时自动创建，名字未另一个域的NetBIOS 名，以$结尾，存储 trust key（NT hash or Kerberos keys 中的一个），会在 `Get-ADUser` and `Get-ADObject`两个里面出现
 
@@ -463,7 +463,7 @@ POKEMON$
 
 如果能拿到域信任账户的[secrets](https://zer1t0.gitlab.io/posts/attacking_ad/Domain database dumping)，就可以创建[inter-realm Kerberos tickets](https://adsecurity.org/?p=1588)
 
-## **Groups**
+# **Groups**
 
 [groups](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#default-security-groups)
 
@@ -495,9 +495,9 @@ DHCP Users
 DHCP Administrators
 ```
 
-### **Important groups**
+## **Important groups**
 
-#### **Administrative groups**
+### **Administrative groups**
 
 AD里有许多 [default groups](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#default-security-groups)定义域/森林不同角色，[Domain Admins](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#bkmk-domainadmins) group应该最重要。
 
@@ -566,7 +566,7 @@ Enterprise Admins只存在于域森林根域，默认添加到所有域的[Admin
 '----------------------------------'     '----------------------------------'
 ```
 
-#### **Other important groups**
+### **Other important groups**
 
 other [important groups](https://adsecurity.org/?p=3700)
 
@@ -584,6 +584,8 @@ other [important groups](https://adsecurity.org/?p=3700)
 还有很多[groups described in Microsoft docs](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#replicator)
 
 许多软件（微软）能自己添加用户组，如 [Exchange](https://zer1t0.gitlab.io/posts/attacking_ad/#exchange)可以[add privileged groups](https://adsecurity.org/?p=4119) 如Exchange Windows Permissions组，可用来实施DCSync攻击（如果没有正确升级/同步？）
+
+## **Group Scope**
 
 AD中根据[their scope](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-security-groups#group-scope)可以把组分为三类：
 
