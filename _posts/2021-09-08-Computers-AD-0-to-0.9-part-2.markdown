@@ -23,8 +23,6 @@ article_header:
 
 这篇是AD from 0 to 0.9系列笔记的第而部分，主要是有计算机，原文：
 
-前言：这篇是AD from 0 to 0.9系列笔记的第二部分，主要关于计算机，原文：
-
 [Attacking Active Directory: 0 to 0.9](https://zer1t0.gitlab.io/posts/attacking_ad/#why-this-post) 
 
 
@@ -38,7 +36,7 @@ article_header:
 | 工作站 | 个人电脑，win10、win7                    |
 | 服务器 | 提供网站文件数据库服务，Linux或win服务器 |
 
-## **Domain Controllers**
+# **Domain Controllers**
 
 域的中心服务器DC，运行 [Active Directory Domain Service](https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview) (AD DS)服务
 
@@ -48,7 +46,7 @@ DC需要能和其他电脑通信，考虑到负载均衡一个域一般会有多
 
 为了允许计算机和用户获取数据库数据，DC提供了一系列服务如DNS, Kerberos, LDAP, SMB, RPC, etc.
 
-### **Domain Controllers discovery**
+## **Domain Controllers discovery**
 
 找DC不难，比如发起DNS请求域的LDAP服务器（即DC），不需要权限
 
@@ -146,7 +144,7 @@ Nmap done: 1 IP address (1 host up) scanned in 164.31 seconds
 
 3389也有可能开着的,允许 [RDP](https://zer1t0.gitlab.io/posts/attacking_ad/#rdp)或者[many other services](https://docs.microsoft.com/en-US/troubleshoot/windows-server/networking/service-overview-and-network-port-requirements).
 
-### **Domain database dumping**
+## **Domain database dumping**
 
 万一拿到域管理员想找 krbtgt 伪造[Golden tickets](https://en.hackndo.com/kerberos-silver-golden-tickets/).之类的。
 
@@ -170,9 +168,9 @@ krbtgt:des-cbc-md5:0e6d79d66b4951cd
 [*] Cleaning up...
 ```
 
-## **Windows computers**
+# **Windows computers**
 
-### **Windows computers discovery**
+## **Windows computers discovery**
 
 首先，万一有凭证，用[LDAP](https://zer1t0.gitlab.io/posts/attacking_ad/#ldap)  [query the domain database](https://zer1t0.gitlab.io/posts/attacking_ad/#how-to-query-the-database)，能查计算机名字甚至系统
 
@@ -243,13 +241,13 @@ Version: 10.0.19041
 OS: Windows 10 | Windows Server 2019 | Windows Server 2016
 ```
 
-### **Windows computers connection**
+## **Windows computers connection**
 
 找到win机器过后就需要连接到它们来抓凭证或数据
 
 这通常需要远程执行命令
 
-#### **Connecting with RPC/SMB**
+### **Connecting with RPC/SMB**
 
 最常见的应该是把RPC和SMB混着用， [PsExec ](https://docs.microsoft.com/en-us/sysinternals/downloads/psexec)**或者**impacket 示例： [psexec.py](https://github.com/SecureAuthCorp/impacket/blob/master/examples/psexec.py), [wmiexec.py](https://github.com/SecureAuthCorp/impacket/blob/master/examples/wmiexec.py)**以及其他*****exec.py**
 
@@ -316,7 +314,7 @@ C:\Windows\system32>
 
 使用Kerberos身份验证时，需要将远程计算机的主机名（DNS名称或NetBIOS名称）而不是其IP作为目标传递给工具，这是因为Kerberos身份验证使用主机名来标识远程计算机的[service](https://zer1t0.gitlab.io/posts/attacking_ad/#services)，并提供正确的票证对其进行身份验证
 
-#### Connecting with Powershell Remoting
+### Connecting with Powershell Remoting
 
 [Powershell Remoting](https://zer1t0.gitlab.io/posts/attacking_ad/#powershell-remoting) 可以替代RPC/SMB来连接win机器，端口5985，在win服务器上**默认开启**
 
@@ -327,7 +325,7 @@ win上可以用许多[CmdLets ](https://docs.microsoft.com/en-us/powershell/scri
 | evil-winrm          | 可以传参或者像impacket一样配置到ccache文件里                 |
 | Powershell  cmdlets | 直接用密码，但如果是NT hash 或Kerberos 票据，需要用 [Rubeus](https://github.com/GhostPack/Rubeus) or [mimikatz ](https://github.com/gentilkiwi/mimikatz)来将这些注入 |
 
-#### **Connecting with RDP**
+### **Connecting with RDP**
 
  [RDP](https://zer1t0.gitlab.io/posts/attacking_ad/#rdp) (Remote Desktop Protocol)，win连接用 [mstsc](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/mstsc)
 
@@ -343,9 +341,9 @@ win的话用[ mimikatz or Rubeus](https://shellz.club/pass-the-hash-with-rdp-in-
 
 ![1](../pics/AD_0_TO_0.9/1.png)
 
-### **Windows computers credentials**
+## **Windows computers credentials**
 
-#### **LSASS credentials**
+### **LSASS credentials**
 
 win机器上一般找凭证的地方是**LSASS** (Local Security Authority Subsystem Service) process (lsass.exe)。LSASS管计算机上安全相关的操作，包括用户认证。
 
@@ -389,9 +387,9 @@ win机器上一般找凭证的地方是**LSASS** (Local Security Authority Subsy
 
 lsass.exe可配置运行为PPL (Protected Process Light)，这就很难获取配置但 [can be disabled](https://www.redcursor.com.au/blog/bypassing-lsa-protection-aka-protected-process-light-without-mimikatz-on-windows-10).
 
-#### **Registry credentials**
+### **Registry credentials**
 
-##### **LSA secrets**
+#### **LSA secrets**
 
 注册表也能找到凭证，比如[LSA secrets](https://passcape.com/index.php?section=docsys&cmd=details&id=23)，存一些只有SYSTEM 账户能访问的数据，存为SECURITY [hive](https://docs.microsoft.com/en-us/windows/win32/sysinfo/registry-hives) file，并用BootKey/SysKey加密（储存在SYSTEM hive file）
 
@@ -405,11 +403,11 @@ LSA secrets能找到：
 
 SECURITY hive file（安全配置单元文件）也会存上一个域用户登陆的凭证，叫Domain cached credentials (DCC)，即便连不上DC也能认证用户；这些缓存的凭证为MSCACHEV2/MSCASH hashes，不能实施PTH，但能[crack them](https://www.ired.team/offensive-security/credential-access-and-credential-dumping/dumping-and-cracking-mscash-cached-domain-credentials)来取得用户密码
 
-##### **SAM**
+#### **SAM**
 
 [SAM](https://en.wikipedia.org/wiki/Security_Account_Manager) hive file也有凭证，包括本地用户的NT hash，可以尝试撞库
 
-##### **Dumping registry credentials**
+#### **Dumping registry credentials**
 
 可以用mimikatz从内存读SECURITY and SAM hives的凭证
 
@@ -468,7 +466,7 @@ NL$KM:0bbc2edba1a7e242566db84b5a3779a45351756d647f9abfdcbfc283f46402a65ee853abe5
 | NK$LM                                    | 给的是[key used to encrypt the Domain Cached Credentials](https://www.trustwave.com/en-us/resources/blogs/spiderlabs-blog/dumping-lsa-secrets-on-nt5-x64/)，不过secretsdump 已经解密了，用处不大 |
 | _SC_<service>                            | 运行服务的用户密码                                           |
 
-#### **Powershell history**
+### **Powershell history**
 
 ```
 #阅读powershell history 来找凭证
@@ -484,21 +482,21 @@ Get-ChildItem+path
 Set-PSReadlineOption -HistorySaveStyle SaveNothing
 ```
 
-#### **Other places to find credentials in Windows**
+### **Other places to find credentials in Windows**
 
 还能找找脚本或者配置文件，像浏览器就就会存凭证， [LaZagne project](https://github.com/AlessandroZ/LaZagne)有软件列表
 
  [keyloggers](https://www.tarlogic.com/en/blog/how-to-create-keylogger-in-powershell/) or fake [SSP modules ](https://adsecurity.org/?p=1760)这些工具也可以找凭证
 
-## **Linux computers**
+# **Linux computers**
 
-### **Linux computers discovery**
+## **Linux computers discovery**
 
 如果有域凭证可以和win一样用LDAP查询域数据库
 
 linux没那么多端口默认开着，因此一般就是ssh
 
-### **Linux computers connection**
+## **Linux computers connection**
 
 最常用的方式就是ssh拿shell，[Powershell remoting](https://zer1t0.gitlab.io/posts/attacking_ad/#powershell-remoting)也可以用在Linux上
 
@@ -514,11 +512,11 @@ linux没那么多端口默认开着，因此一般就是ssh
 
 老版本的linux还能[Telnet](https://en.wikipedia.org/wiki/Telnet)（23），需要账密连接
 
-### **Linux computers credentials**
+## **Linux computers credentials**
 
 linux没有lsass process，但也有很多有意思的地方
 
-#### **Linux  Kerberos tickets**
+### **Linux  Kerberos tickets**
 
 为了认证用户身份，linux通常有一个配置了域计算机账户的Kerberos服务端，可以在keytab找到凭证，一般是在/etc/krb5.keytab，或者是 KRB5_KTNAME or KRB5_CLIENT_KTNAME环境变量中，或 [Kerberos configuration file](https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html) /etc/krb5.conf 。可以用 klist 或 [cerbero](https://github.com/Zer1t0/cerbero)展示内容，包括密钥，klist找到nt hash 后可以[ask for a Kerberos ticket ](https://www.tarlogic.com/en/blog/how-to-attack-kerberos/)来伪装用户，
 
@@ -541,11 +539,11 @@ krb5cc_1569901115
 
 找 [Kerberos configuration file](https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html) in /etc/krb5.conf 可以确定 [where the tickets are stored](https://web.mit.edu/kerberos/krb5-1.12/doc/basic/ccache_def.html) 
 
-#### **Linux user files**
+### **Linux user files**
 
  /etc/shadow（有本地用户密码）找凭证也行，然后试着[crack them by using hashcat](https://techglimpse.com/cracking-linux-password-hashes-with-hashcat/)，但不能用Pass-The-Hash attack，因为 [SSH](https://zer1t0.gitlab.io/posts/attacking_ad/#ssh)需要密码来远程授权登录
 
-#### **SSH keys**
+### **SSH keys**
 
 找SSH私钥也行，在用户目录的.ssh下，文件名通常是id_rsa 或id_ed25519。
 
@@ -564,7 +562,7 @@ $ ssh -i id_ed25519_foo_key foo@db.contoso.local
 
 如果能在 .ssh目录下找到known_hosts，它可能会向你展示用私钥连接ssh到的机器主机名 ，文件名字可能会被hash，[crack them with hashcat](https://github.com/chris408/known_hosts-hashcat)
 
-#### **Bash history**
+### **Bash history**
 
 .bash_history在用户目录下，可以取消HISTFILE 环境变量（unset HISTFILE**）**设置来避免记录或用 [**similar**](https://www.if-not-true-then-false.com/2010/quit-bash-shell-without-saving-bash-history/) [**method**](https://www.cyberciti.biz/faq/disable-bash-shell-history-linux/)
 
@@ -573,7 +571,7 @@ $ ssh -i id_ed25519_foo_key foo@db.contoso.local
 unset HISTFILE
 ```
 
-#### **Other places to find credentials in Linux**
+### **Other places to find credentials in Linux**
 
 配置文件等
 
