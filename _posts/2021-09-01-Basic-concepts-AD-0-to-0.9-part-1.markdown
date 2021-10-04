@@ -1,6 +1,6 @@
 ---
 layout: article
-title: Basic concepts--AD from 0 to 0.9
+title: Basic concepts--AD from 0 to 0.9 part 1
 mathjax: true
 key: a00004	
 cover: /bkgs/1.png
