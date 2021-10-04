@@ -6,6 +6,7 @@ key: a00003
 cover: /bkgs/1.png
 modify_date: 2021-07-14
 show_author_profile: true
+excerpt_type: html
 tag: 
 - Academy
 - words
@@ -23,7 +24,7 @@ article_header:
 
 ## 前言
 
-这里会持续更新学习过程中查阅的英语词句。 [Web Security Academy](https://portswigger.net/web-security/learning-path)上的
+这里会持续更新学习过程中查阅的英语词句。<!--more--> [Web Security Academy](https://portswigger.net/web-security/learning-path)上的
 
 ## XXE
 

@@ -2,10 +2,11 @@
 layout: article
 title: Basic concepts--AD from 0 to 0.9 part 1
 mathjax: true
-key: a00004	
+key: a00005	
 cover: /bkgs/1.png
 modify_date: 2021-10-3
 show_author_profile: true
+excerpt_type: html
 tag: 
 - DC
 - Pentest
@@ -21,13 +22,14 @@ article_header:
     src: /docs/assets/images/cover3.jpg
 ---
 
+这篇是AD from 0 to 0.9系列笔记的第一部分，主要是有关域，森林，域信任，用户，组的概念和基础<!--more-->
+
+原文： [Attacking Active Directory: 0 to 0.9](https://zer1t0.gitlab.io/posts/attacking_ad/#why-this-post) 
+
 # 前言
 
 上次被推荐了这篇文章，说是一篇文章讲完了内网，零零散散看了可能有快一个月，总算是看完了一遍。确实学到了很多有关内网的内容，不过文章比较侧重底层和基础一些，还有大量的链接，不容易和实践的记忆联系在一起。上面写的很多内容在自己打靶机或者真实渗透的时候完全感觉不到，但实践的时候看到一些理论相关的又能豁然开朗，可能这就是枯燥的理论学习的意义吧，希望自己的学习不要浮于表层，局限于工具的使用。
 
-这篇是AD from 0 to 0.9系列笔记的第一部分，主要是有关域，森林，域信任，用户，组的概念和基础，原文：
-
-[Attacking Active Directory: 0 to 0.9](https://zer1t0.gitlab.io/posts/attacking_ad/#why-this-post) 
 
 （英语原文笔记写着爽但再看的时候完全不想看，因此这个系列完了会把Academy的笔记尽量翻译一次，以后应该也会尽量少做英文的笔记，实在是提不起复习的兴趣）
 
@@ -449,7 +451,7 @@ The [Find-DomainObjectPropertyOutlier](https://gist.github.com/HarmJ0y/184f9822b
 
 ## **Trust accounts**
 
-创建域信任时自动创建，名字未另一个域的NetBIOS 名，以$结尾，存储 trust key（NT hash or Kerberos keys 中的一个），会在 `Get-ADUser` and `Get-ADObject`两个里面出现
+创建域信任时自动创建，名字为另一个域的NetBIOS 名，以$结尾，存储 trust key（NT hash or Kerberos keys 中的一个），会在 `Get-ADUser` and `Get-ADObject`两个里面出现
 
 名字为对方域名(foo域信任账户为bar$,bar为foo$)
 

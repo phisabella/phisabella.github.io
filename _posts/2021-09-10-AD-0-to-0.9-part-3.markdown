@@ -1,0 +1,472 @@
+---
+layout: article
+title: AD from 0 to 0.9 part 3
+mathjax: true
+key: a00007
+cover: /bkgs/1.png
+modify_date: 2021-10-4
+show_author_profile: true
+excerpt_type: html
+tag: 
+- DC
+- Pentest
+mode: immersive
+header:
+  theme: dark
+article_header:
+  type: overlay
+  theme: dark
+  background_color: '#203028'
+  background_image:
+    gradient: 'linear-gradient(135deg, rgba(34, 139, 87 , .4), rgba(139, 34, 139, .4))'
+    src: /docs/assets/images/cover3.jpg
+---
+
+这篇是AD from 0 to 0.9系列笔记的第三部分，主要是服务，数据库，安全相关<!--more-->
+
+原文： [Attacking Active Directory: 0 to 0.9](https://zer1t0.gitlab.io/posts/attacking_ad/#why-this-post) 
+
+# **Services**
+
+AD服务是一个标识符，指明机器上有那些远程服务可用（监听端口），需要通过Kerberos来授权域用户的服务需要注册到AD数据库中
+
+AD每个注册服务都提供以下信息：
+
+- 运行服务的用户
+- 服务[class](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2003/cc772815(v=ws.10)#service-principal-names)，指示服务的类型，如web服务注册为www类
+- 运行服务的主机
+- （可选）机器上的服务端口。
+
+
+- （可选）服务的路径
+
+为了存储这些内容，每个服务都由 [Service Principal Name](https://en.hackndo.com/service-principal-name-spn/) (SPN)标识，格式：
+
+```text
+service_class/machine_name[:port][/path]
+```
+
+机器名可以是主机名或者 [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) (Fully Qualified Domain Name: 主机名+域名)，Kerberos通常会存两个来实现兼容性；
+
+```
+###LDAP service SPNs
+ldap/DC01
+ldap/dc01.contoso.local
+```
+
+SPN会存在一个用户或计算机object里，因此服务用户可以被确认
+
+```powershell
+###services of ws01-10 computer
+PS C:\> Get-ADComputer ws01-10 -Properties ServicePrincipalName | select -ExpandProperty ServicePrincipalName
+TERMSRV/WS01-10
+TERMSRV/ws01-10.contoso.local
+RestrictedKrbHost/ws01-10.contoso.local
+HOST/ws01-10.contoso.local
+RestrictedKrbHost/WS01-10
+HOST/WS01-10
+```
+
+即便服务没执行也能注册到AD里，这可能会导致旧的服务被账号接管（用 [Kerberoast](https://www.youtube.com/watch?v=PUyhlN-E5MU)）
+
+Kerberoast简单来说，可以为域中注册的任何服务请求Kerberos票证，服务的Kerberos ticket有部分会用服务用户从密码衍生出的secret（可能是NT hash 或Kerberos keys）加密，因此可以[crack](https://www.tarlogic.com/en/blog/how-to-attack-kerberos/)来获取用户密码。计算机服务这么做很难因为密码很复杂，但是用户服务的密码一般很简单。
+
+## **Host service**
+
+因为系统会部署很多服务，有一个默认的[HOST](https://en.hackndo.com/service-principal-name-spn/#edge-case---host)服务类，HOST class是好几个服务的别名
+
+```powershell
+###Services classes identified by HOST
+PS C:\Users\Administrator> Get-ADObject -Identity "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$((Get-ADDomain).DistinguishedName)" -properties sPNMappings
+
+
+DistinguishedName : CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,DC=contoso,DC=local
+Name              : Directory Service
+ObjectClass       : nTDSService
+ObjectGUID        : 70502b18-010f-4d33-bbb9-ff85a88c6156
+sPNMappings       : {host=alerter,appmgmt,cisvc,clipsrv,browser,dhcp,dnscache,replicator,eventlog,eventsystem,policyage
+                    nt,oakley,dmserver,dns,mcsvc,fax,msiserver,ias,messenger,netlogon,netman,netdde,netddedsm,nmagent,p
+                    lugplay,protectedstorage,rasman,rpclocator,rpc,rpcss,remoteaccess,rsvp,samss,scardsvr,scesrv,seclog
+                    on,scm,dcom,cifs,spooler,snmp,schedule,tapisrv,trksvr,trkwks,ups,time,wins,www,http,w3svc,iisadmin,
+                    msdtc}
+```
+
+# **Database**
+
+域数据库文件在DC 的C:\Windows\NTDS\ntds.dit 
+
+## **Classes**
+
+AD数据库有一个 [schema](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2003/cc773309(v=ws.10)) ，定义不同的 [object classes](https://docs.microsoft.com/en-us/windows/win32/adschema/classes)，每个类都有不同的属性和服务，比如： [User class](https://docs.microsoft.com/en-us/windows/win32/adschema/c-user), the [Computer class](https://docs.microsoft.com/en-us/windows/win32/adschema/c-computer) or the [Group class](https://docs.microsoft.com/en-us/windows/win32/adschema/c-group)
+
+类可以是某个类的子类，比如Computer class is a subclass of User class，所有类都是 [Top](https://docs.microsoft.com/en-us/windows/win32/adschema/c-top) class类的子类，
+
+ObjectClass属性包含对象的类列表，即对象的当前类和所有父类。
+
+ `ObjectGUID`属性是一个[GUID](https://en.wikipedia.org/wiki/Universally_unique_identifier) (globally unique identifier)，用来标识数据库对象，不要和 SID属性(or SecurityIdentifier)搞混淆（和安全主体相关的标识符，例如用户和组的）
+
+类可以附加到辅助类以获取其属性，此辅助类不会出现在属性中；如用户和组类就附加在 [Security-Principal](https://docs.microsoft.com/en-us/windows/win32/adschema/c-securityprincipal) 辅助类上，该类定义了属性`SAMAccountName` and `SID` properties.
+
+```powershell
+###Classes of computer object
+PS C:\> Get-NetComputer dc01 -Properties objectclass | select -ExpandProperty objectclass
+top
+person
+organizationalPerson
+user
+computer
+```
+
+## **Properties**
+
+通常域用户可以读除个别对象外任意属性，比如密码；[UserPassword](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/f3adda9f-89e1-4340-a3f2-1f0a6249f1f8) and [UnicodePwd](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-ada3/71e64720-be27-463f-9cc5-117f4bc849e1)是只写不读的属性（[password change](https://docs.microsoft.com/en-US/troubleshoot/windows/win32/change-windows-active-directory-user-password)时需要写来改密码）；
+
+有些属性被标记为 [confidential properties](https://docs.microsoft.com/en-us/troubleshoot/windows-server/windows-security/mark-attribute-as-confidential)来限制获取（设置[SearchFlags](https://docs.microsoft.com/en-us/windows/win32/adschema/a-searchflags)为128），这样读取数据不仅需要读取权限，用户需要 [CONTROL_ACCESS right](https://zer1t0.gitlab.io/posts/attacking_ad/#rights)。
+
+```powershell
+###Get confidential properties
+
+PS C:\Users\Administrator> Get-ADObject -LDAPFilter "(searchflags:1.2.840.113556.1.4.803:=128)" -SearchBase "CN=Schema,CN=Configuration,DC=contoso,DC=local" | Select Name
+
+Name
+----
+ms-TPM-Owner-Information-Temp
+ms-Kds-KDF-AlgorithmID
+ms-Kds-KDF-Param
+ms-Kds-SecretAgreement-AlgorithmID
+ms-Kds-SecretAgreement-Param
+ms-Kds-PublicKey-Length
+ms-Kds-PrivateKey-Length
+ms-Kds-RootKeyData
+ms-Kds-Version
+ms-Kds-DomainID
+ms-Kds-UseStartTime
+ms-Kds-CreateTime
+ms-FVE-RecoveryPassword
+ms-FVE-KeyPackage
+ms-TPM-OwnerInformation
+ms-DS-Transformation-Rules-Compiled
+ms-PKI-Credential-Roaming-Tokens
+ms-DS-Issuer-Certificates
+ms-PKI-RoamingTimeStamp
+ms-PKI-DPAPIMasterKeys
+ms-PKI-AccountCredentials
+UnixUserPassword
+```
+
+[Validated Writes](https://docs.microsoft.com/en-us/windows/win32/adschema/validated-writes)来控制需要满足特定条件的属性。
+
+为了管理相关属性集，对于给定的用户权限，也可以使用属性集（[property sets](https://docs.microsoft.com/en-us/windows/win32/adschema/property-sets)），而不必单独管理属性
+
+## **Principals**
+
+**一个 [principal](https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/security-principals)是就是一个安全实体**，最常见的主体是**users, groups and computers**，这个术语同样也用在像 [Kerberos](https://zer1t0.gitlab.io/posts/attacking_ad/#kerberos)这些地方。
+
+### **SID**
+
+用SID (Security Identifier)来识别安全主体，AD中有三种SIDs
+
+| **Domain SID**    | 用来标识域，以及域主体的SID的基础                            |
+| ----------------- | ------------------------------------------------------------ |
+| **Principal SID** | 标识安全主体，由域SID和安全主体RID（相对标识符，最后四位）组成 |
+
+```powershell
+###Get current domain SID
+PS C:\> $(Get-ADDomain).DomainSID.Value
+S-1-5-21-1372086773-2238746523-2939299801
+###SID of user
+PS C:\> $(Get-ADUser Anakin).SID.Value
+S-1-5-21-1372086773-2238746523-2939299801-1103
+```
+
+可以看出用户SID就是域SID加RID
+
+AD中有很多[Well-known SIDs](https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/security-identifiers-in-windows)为特殊情况标识抽象实体：
+
+| S-1-5-11 | 已认证用户，已登录用户属于这个组                             |
+| -------- | ------------------------------------------------------------ |
+| S-1-5-10 | 安全主体自身，在[security   descriptors](https://zer1t0.gitlab.io/posts/attacking_ad/#security-descriptor)中用于引用对象本身。 |
+
+```powershell
+###Self SID (S-1-5-10) in user security descriptor
+PS C:\> . .\PowerView.ps1
+PS C:\> $(Get-DomainObjectAcl Anakin)[41]
+
+ObjectDN               : CN=Anakin,CN=Users,DC=contoso,DC=local
+ObjectSID              : S-1-5-21-1372086773-2238746523-2939299801-1103
+ActiveDirectoryRights  : WriteProperty
+ObjectAceFlags         : ObjectAceTypePresent, InheritedObjectAceTypePresent
+ObjectAceType          : ea1b7b93-5e48-46d5-bc6c-4df4fda78a35
+InheritedObjectAceType : bf967a86-0de6-11d0-a285-00aa003049e2
+BinaryLength           : 56
+AceQualifier           : AccessAllowed
+IsCallback             : False
+OpaqueLength           : 0
+AccessMask             : 32
+SecurityIdentifier     : S-1-5-10
+AceType                : AccessAllowedObject
+AceFlags               : ContainerInherit, InheritOnly, Inherited
+IsInherited            : True
+InheritanceFlags       : ContainerInherit
+PropagationFlags       : InheritOnly
+AuditFlags             : None
+```
+
+还有一些众所周知的SID，为域/林的内置主体定义了模式：
+
+| **Administrator**     | S-1-5-21-domain-500       |
+| --------------------- | ------------------------- |
+| **Domain Admins**     | S-1-5-21-domain-512       |
+| **Domain Users**      | S-1-5-21-domain-513       |
+| **Enterprise Admins** | S-1-5-21-root  domain-519 |
+
+```powershell
+###Administrator SID
+PS C:\> $(Get-ADUser Administrator).SID.Value
+S-1-5-21-1372086773-2238746523-2939299801-500
+```
+
+## **Distinguished Names**
+
+DistinguishedName 属性像路径，显示对象在数据库层次结构中的位置（类似文件路径），
+
+```powershell
+###DistinguishedName of object
+
+PS C:\> Get-ADComputer dc01 | select -ExpandProperty DistinguishedName
+CN=DC01,OU=Domain Controllers,DC=contoso,DC=local
+```
+
+它经常用于标识数据库中的对象并引用数据库中的其他对象。例如，组的成员由其DiscriminatedName引用。
+
+```powershell
+###List members of a group
+
+PS C:\> Get-ADGroup "Domain Admins" -Properties member | select -ExpandProperty Member
+CN=leia,CN=Users,DC=contoso,DC=local
+CN=Administrator,CN=Users,DC=contoso,DC=local
+```
+
+[Distinguished Name](https://www.informit.com/articles/article.aspx?p=101405&seqNum=7)（DN）由几个部分组成：
+
+| **Domain Component (DC)**                                    | 标识数据库的域部分，比如 it.domain.com 会显示为 DC=it,DC=domain,DC=com |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [**Organizational   Unit**](https://en.wikipedia.org/wiki/Active_Directory#Organizational_units) **(OU)** | 给数个有关对象分组的标识容器；尽管OU像组但用意不同，OU的目的是组织数据库的对象，安全组为了组织在域、林中的权限。<br> (有时OU会直接映射到安全组，这些组叫[shadow groups](https://en.wikipedia.org/wiki/Active_Directory#Shadow_groups) ) <br/>应用[GPO](https://zer1t0.gitlab.io/posts/attacking_ad/#group-policy)就能使其在OU所有对象中生效，在组中就不能这样弄 |
+| **Common Name (CN)**                                         | 标识对象的标识符，有时CN不止一个，因为一些对象也是容器CN=Administrator,CN=Users,DC=contoso,DC=local,  CN=Users 就标识用户容器 |
+
+## **Partitions**
+
+除了OU和容器之外，数据库还通过分区进行划分，分区如下：
+
+| **Domain**           | 存储域对象                                |
+| -------------------- | ----------------------------------------- |
+| **Configuration**    | 存域的配置，例如HOST 服务别名，或知名SIDs |
+| **Schema**           | 存被数据库存储类和属性的定义              |
+| **Domain DNS Zones** | 存域和子域DNS记录                         |
+| **Forest DNS Zones** | 存剩余森林的DNS记录，包括父域             |
+
+```powershell
+###List database partitions
+
+PS C:\> Import-Module ActiveDirectory
+PS C:\> cd AD:
+PS AD:\> ls
+
+Name                 ObjectClass          DistinguishedName
+----                 -----------          -----------------
+contoso              domainDNS            DC=contoso,DC=local
+Configuration        configuration        CN=Configuration,DC=contoso,DC=local
+Schema               dMD                  CN=Schema,CN=Configuration,DC=contoso,DC=local
+DomainDnsZones       domainDNS            DC=DomainDnsZones,DC=contoso,DC=local
+ForestDnsZones       domainDNS            DC=ForestDnsZones,DC=contoso,DC=local
+```
+
+（ActiveDirectory Powershell module开着才能切到AD: drive）
+
+搜索时以DistinguishedName 为基准
+
+```powershell
+###Search sites in configuration partition
+
+PS C:\> Get-ADObject -LDAPFilter "(objectclass=site)" -SearchBase "CN=Configuration,$((Get-ADDomain).DistinguishedName)" | select name
+
+name
+----
+Default-First-Site-Name
+mysite
+```
+
+[adidnsdump](https://github.com/dirkjanm/adidnsdump) or [dns-dump ](https://github.com/mmessano/PowerShell/blob/master/dns-dump.ps1)用DNS区域分区来获取域所有DNS信息
+
+## **Global Catalog**
+
+有些AD数据库会存别的域数据，被称为 [Global Catalogs](https://docs.microsoft.com/pt-pt/previous-versions/windows/server/cc737410(v=ws.10)#domain-controller-and-global-catalog-server-structure)，会存额外的只读分区，含别的域部分对象的部分属性。访问Global Catalog时需要指定3268端口（LDAP）
+
+```powershell
+###List the Global Catalogs of the domain.
+PS C:\> Get-ADForest |select -ExpandProperty GlobalCatalogs
+dc01.poke.mon
+itdc01.it.poke.mon
+
+###Searching in the global catalog
+PS C:\> Get-ADUser -Server "poke.mon:3268" -Filter * | select DistinguishedName
+
+DistinguishedName
+-----------------
+CN=Administrator,CN=Users,DC=poke,DC=mon
+CN=Guest,CN=Users,DC=poke,DC=mon
+CN=krbtgt,CN=Users,DC=poke,DC=mon
+CN=CONTOSO$,CN=Users,DC=poke,DC=mon
+CN=pikachu,CN=Users,DC=poke,DC=mon
+CN=ITPOKEMON$,CN=Users,DC=poke,DC=mon
+CN=Administrator,CN=Users,DC=it,DC=poke,DC=mon
+CN=Guest,CN=Users,DC=it,DC=poke,DC=mon
+CN=krbtgt,CN=Users,DC=it,DC=poke,DC=mon
+CN=POKEMON$,CN=Users,DC=it,DC=poke,DC=mon
+CN=porygon,CN=Users,DC=it,DC=poke,DC=mon
+```
+
+## **How to query the database?**
+
+DC提供了几个选项在交互数据库时用不同协议/服务。
+
+### **LDAP**
+
+ [LDAP](https://en.wikipedia.org/wiki/Lightweight_Directory_Access_Protocol) (Lightweight Directory Access Protocol)，可以读域数据库和 [Global Catalog](https://zer1t0.gitlab.io/posts/attacking_ad/#global-catalog)
+
+```
+###LDAP ports
+					  .-------------
+                      |
+                    .---
+           .--TCP-->| 389 LDAP
+           |        '---
+           |          |
+           |        .---
+           |--SSL-->| 636 LDAPS
+ .------.  |        '---
+ | LDAP |--|          |
+ '------'  |        .---
+           |--TCP-->| 3268 LDAP Global Catalog
+           |        '---
+           |          |
+           |        .---
+           '--SSL-->| 3269 LDAPS Global Catalog 
+                    '---
+                      |
+                      '-------------
+```
+
+查询语法可以根据属性来查，即filters，如(&(objectsclass=group)(members=*)) 查的是域的组以及成员
+
+除了filters，还能指定想取的属性，[LDAP wiki](https://ldapwiki.com/)查看更多例子
+
+```bash
+###Domain groups with members
+
+~$ ldapsearch -H ldap://192.168.100.2 -x -LLL -W -D "anakin@contoso.local" -b "dc=contoso,dc=local" "(&(objectclass=group)(member=*))" "samaccountname"
+Enter LDAP Password: 
+dn: CN=Administrators,CN=Builtin,DC=contoso,DC=local
+sAMAccountName: Administrators
+
+dn: CN=Users,CN=Builtin,DC=contoso,DC=local
+sAMAccountName: Users
+
+dn: CN=Guests,CN=Builtin,DC=contoso,DC=local
+sAMAccountName: Guests
+
+dn: CN=Remote Desktop Users,CN=Builtin,DC=contoso,DC=local
+sAMAccountName: Remote Desktop Users
+
+dn: CN=IIS_IUSRS,CN=Builtin,DC=contoso,DC=local
+sAMAccountName: IIS_IUSRS
+
+dn: CN=Schema Admins,CN=Users,DC=contoso,DC=local
+sAMAccountName: Schema Admins
+
+dn: CN=Enterprise Admins,CN=Users,DC=contoso,DC=local
+sAMAccountName: Enterprise Admins
+
+dn: CN=Domain Admins,CN=Users,DC=contoso,DC=local
+sAMAccountName: Domain Admins
+
+dn: CN=Group Policy Creator Owners,CN=Users,DC=contoso,DC=local
+sAMAccountName: Group Policy Creator Owners
+
+dn: CN=Pre-Windows 2000 Compatible Access,CN=Builtin,DC=contoso,DC=local
+sAMAccountName: Pre-Windows 2000 Compatible Access
+
+dn: CN=Windows Authorization Access Group,CN=Builtin,DC=contoso,DC=local
+sAMAccountName: Windows Authorization Access Group
+
+dn: CN=Denied RODC Password Replication Group,CN=Users,DC=contoso,DC=local
+sAMAccountName: Denied RODC Password Replication Group
+
+# refldap://ForestDnsZones.contoso.local/DC=ForestDnsZones,DC=contoso,DC=local
+
+# refldap://DomainDnsZones.contoso.local/DC=DomainDnsZones,DC=contoso,DC=local
+
+# refldap://contoso.local/CN=Configuration,DC=contoso,DC=local
+```
+
+除了像用户凭证以外的数据都可以被LDAP取出
+
+ [Powerview](https://github.com/BC-SECURITY/Empire/blob/master/data/module_source/situational_awareness/network/powerview.ps1) or [ADExplorer](https://docs.microsoft.com/en-us/sysinternals/downloads/adexplorer).等很多win工具都用了LDAP，没工具也能用.NET来用 [Powershell to query LDAP](https://docs.microsoft.com/en-us/dotnet/api/system.directoryservices?view=net-5.0\]\[.NET objects related to LDAP\]\] to make LDAP queries, youcan check DomainSearcher as example)
+
+Linux的话可以用 [ldapsearch](https://linux.die.net/man/1/ldapsearch) and [ldapmodify](https://linux.die.net/man/1/ldapmodify)等。
+
+要从AD拿数据时LDAP应该是最先考虑的，LDAP同时也能修改对象，比如给组加用户
+
+### **ADWS**
+
+[Windows Server 2008 R2](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/dd391908(v=ws.10)?redirectedfrom=MSDN) 有了ADWS (Active Directory Web Services)来替代LDAP，用 [SOAP](https://en.wikipedia.org/wiki/SOAP)来查询和操作域对象，
+
+It is [compatible with LDAP filters](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wsds/2ded136c-2fe2-4f7d-8d09-a7118815c6bb) 所以可以精确查询并只取出某个属性. 事实上用ADWS的时候，在DC内部就是用的LDAP请求拿结果
+
+```
+###ADWS related ports and protocols
+                              .---------------------------------------
+                              |          Domain Controller
+                            ,---
+                            | 389 (Domain) <------------.
+                            '---                        |    .------.
+                              |                         |----| LDAP |
+                            .---                        |    '------'
+                            | 3268 (Global Catalog) <---'       |
+                            '---                                ^
+                              |                                 |
+ .------.     .------.      .---                                |
+ | ADWS |>--->| SOAP |>---->| 9389  >----------------->---------'
+ '------'     '------'      '---
+                              |
+                              '---------------------------------------
+```
+
+ADWS是被[ActiveDirectory Powershell module](https://docs.microsoft.com/en-us/powershell/module/addsadministration/?view=windowsserver2019-ps)使用的协议
+
+```powershell
+###List users using ADWS
+PS C:\Users\Administrator> Get-ADUser -Filter * | select name
+
+name
+----
+Administrator
+Guest
+krbtgt
+Anakin
+Han
+POKEMON$
+leia
+luke
+```
+
+### **Other protocols**
+
+| [DNS](https://en.wikipedia.org/wiki/Domain_Name_System)      | 能从数据库读自己的信息                                       |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [SAMR](https://docs.microsoft.com/en-us/openspecs/windows_protocols/MS-SAMR/4df07fab-1bbc-452f-8e92-7853a3c7e380)   (Security Account Manager Remote) | 可以查询编辑用户和组的基本信息，是由诸如net  user/domain之类的命令使用的。 |
+| [DRSR](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-drsr/f977faaa-673e-4f66-b9bf-48c640241d47)   (Directory  Replication Service Remote) | DC用来同步数据库的协议，即便是用户凭证也能被取得，能发起 [dcsync attack](https://adsecurity.org/?p=1729)攻击 |
+| [Kerberos](https://www.tarlogic.com/en/blog/how-kerberos-works/)认证协议 | 用数据库来生成基于请求服务的票据；kpasswd 服务（464端口）被Kerberos用来改用户密码 |
+| [Netlogon](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-nrpc/ff8f970f-3e37-40f7-bd4b-af7336e4792f) | 认证域用户；NTML认证就用这个，也被 [Zerologon](https://www.secura.com/blog/zero-logon)漏洞影响 |
+
+还有很多其他的协议，但这些也足够让你理解取数据有很多种方法了。

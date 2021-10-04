@@ -6,6 +6,7 @@ key: a00001
 cover: /bkgs/1.png
 modify_date: 2021-07-14
 show_author_profile: true
+excerpt_type: html
 tag: 
 - Test
 mode: immersive
@@ -19,7 +20,7 @@ article_header:
     gradient: 'linear-gradient(135deg, rgba(34, 139, 87 , .4), rgba(139, 34, 139, .4))'
     src: /bkgs/2.png
 ---
-
+<!--more-->
 ## 一些文字效果，随用随取
 
 -  颜色+ 斜体 

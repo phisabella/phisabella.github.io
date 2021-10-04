@@ -2,10 +2,11 @@
 layout: article
 title: Computers--AD from 0 to 0.9 part 2
 mathjax: true
-key: a00005	
+key: a00006	
 cover: /bkgs/1.png
 modify_date: 2021-10-4
 show_author_profile: true
+excerpt_type: html
 tag: 
 - DC
 - Pentest
@@ -21,11 +22,9 @@ article_header:
     src: /docs/assets/images/cover3.jpg
 ---
 
-这篇是AD from 0 to 0.9系列笔记的第而部分，主要是有计算机，原文：
+这篇是AD from 0 to 0.9系列笔记的第而部分，主要是计算机相关<!--more-->
 
-[Attacking Active Directory: 0 to 0.9](https://zer1t0.gitlab.io/posts/attacking_ad/#why-this-post) 
-
-
+原文： [Attacking Active Directory: 0 to 0.9](https://zer1t0.gitlab.io/posts/attacking_ad/#why-this-post) 
 
 # **Computers**：
 

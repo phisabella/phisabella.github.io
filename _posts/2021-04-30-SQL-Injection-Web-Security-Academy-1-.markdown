@@ -6,6 +6,7 @@ key: a00002
 cover: /bkgs/1.png
 modify_date: 2021-07-14
 show_author_profile: true
+excerpt_type: html
 tag: 
 - Academy
 - SQLi
@@ -24,7 +25,7 @@ article_header:
 ## 前言
 
 最近学习实践的过程深感自己基础的不足和英语水平的匮乏，正好又找到一个很好的学习网站（https://portswigger.net/web-security/learning-path 既有知识点也有相应的靶场，唯一的缺点就是全英文的），于是想借此重新打一遍web安全基础，并提高自己的英语水平，目前已经学习了XXE，SQL注入和Authentication部分，正在看OAuth的部分，今天先给出SQL injection 学习过程中的笔记，供分享与备忘。
-
+<!--more-->
 Web Security Academy 分了如下5个点来介绍SQL注入，如下：
 
 ## 1.Retrieving hidden data

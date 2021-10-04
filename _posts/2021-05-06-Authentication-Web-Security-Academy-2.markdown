@@ -2,10 +2,11 @@
 layout: article
 title: Authentication--Web Security Academy 2
 mathjax: true
-key: a00003	
+key: a00004	
 cover: /bkgs/1.png
 modify_date: 2021-08-6
 show_author_profile: true
+excerpt_type: html
 tag: 
 - Academy
 - Authentication
@@ -24,7 +25,7 @@ article_header:
 ## 前言
 
 这篇是Web Security Academy的Authentication部分
-
+<!--more-->
 https://portswigger.net/web-security/sql-injection/cheat-sheet)
 
 ## 身份鉴定三因素
