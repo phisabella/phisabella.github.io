@@ -489,7 +489,7 @@ Now that we know how NTLM works, let's talk about how it can be used in a pentes
 
 NTLM可用于侦察，因为如果[NTLMSSP_NEGOTIATE_TARGET_INFO](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-nlmp/99d90ff4-957f-4c8a-80e4-5bfe5a9a9832) flag 在NEGOTIATE 信息里服务器就会在CHALLENGE 信息里以[AvPairs](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-nlmp/83f5e789-660d-4781-8491-5f8c6641f75e)返回TargetInfo ，包含像域名主机名等信息
 
-![10](../pics/AD_0_TO_0.9/10.png)
+![10](/pics/AD_0_TO_0.9/10.png)
 
 ​			*Server information in NTLM CHALLENGE message*
 
