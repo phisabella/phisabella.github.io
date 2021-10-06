@@ -55,7 +55,7 @@ Kerberos侧重于使用称为“票据”的令牌，该令牌允许用户根据
 - 在C/S间建立安全通道的密钥
 - 决定票据期限的时间戳
 
-```asn1
+```powershell
 ###Ticket definition
 		Ticket          ::= [APPLICATION 1] SEQUENCE {
         tkt-vno         [0] INTEGER (5),
