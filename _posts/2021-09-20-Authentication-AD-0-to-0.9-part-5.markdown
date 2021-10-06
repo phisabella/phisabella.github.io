@@ -22,7 +22,7 @@ article_header:
     src: /docs/assets/images/cover3.jpg
 ---
 
-这篇是AD from 0 to 0.9系列笔记的第无部分，主要是身份认证相关<!--more-->
+这篇是AD from 0 to 0.9系列笔记的第五部分，主要是身份认证相关<!--more-->
 
 原文： [Attacking Active Directory: 0 to 0.9](https://zer1t0.gitlab.io/posts/attacking_ad/#why-this-post) 
 

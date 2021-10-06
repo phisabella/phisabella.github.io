@@ -470,3 +470,12 @@ luke
 | [Netlogon](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-nrpc/ff8f970f-3e37-40f7-bd4b-af7336e4792f) | 认证域用户；NTML认证就用这个，也被 [Zerologon](https://www.secura.com/blog/zero-logon)漏洞影响 |
 
 还有很多其他的协议，但这些也足够让你理解取数据有很多种方法了。
+
+# **Security**
+
+AD安全基于以下支柱：
+
+| 地址解析           | 能用来中间人攻击，以及让用户发送凭证到沦陷机器上 |
+| ------------------ | ------------------------------------------------ |
+| 认证Authentication | 能冒充用户实施blala                              |
+| 授权Authorization  | 能跨权限blabal                                   |
