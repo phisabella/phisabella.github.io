@@ -3,7 +3,7 @@ layout: article
 title: Recommended resources--AD from 0 to 0.9 part 9
 mathjax: true
 key: a00013
-cover: /bkgs/1.png
+cover: /bkgs/3.png
 modify_date: 2021-10-6
 show_author_profile: true
 excerpt_type: html
