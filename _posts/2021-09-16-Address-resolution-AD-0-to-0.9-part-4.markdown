@@ -3,7 +3,7 @@ layout: article
 title: Address resolution--AD from 0 to 0.9 part 4
 mathjax: true
 key: a00008
-cover: /bkgs/3.png
+cover: /bkgs/3.jpg
 modify_date: 2021-10-5
 show_author_profile: true
 excerpt_type: html

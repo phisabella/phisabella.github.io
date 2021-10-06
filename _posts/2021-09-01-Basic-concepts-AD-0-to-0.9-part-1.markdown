@@ -3,7 +3,7 @@ layout: article
 title: Basic concepts--AD from 0 to 0.9 part 1
 mathjax: true
 key: a00005	
-cover: /bkgs/3.png
+cover: /bkgs/3.jpg
 modify_date: 2021-10-3
 show_author_profile: true
 excerpt_type: html

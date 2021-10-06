@@ -3,7 +3,7 @@ layout: article
 title: Computers--AD from 0 to 0.9 part 2
 mathjax: true
 key: a00006	
-cover: /bkgs/3.png
+cover: /bkgs/3.jpg
 modify_date: 2021-10-4
 show_author_profile: true
 excerpt_type: html

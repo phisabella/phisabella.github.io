@@ -3,7 +3,7 @@ layout: article
 title: AD from 0 to 0.9 part 3
 mathjax: true
 key: a00007
-cover: /bkgs/3.png
+cover: /bkgs/3.jpg
 modify_date: 2021-10-4
 show_author_profile: true
 excerpt_type: html

@@ -3,7 +3,7 @@ layout: article
 title: Kerberos--AD from 0 to 0.9 part 6
 mathjax: true
 key: a00010
-cover: /bkgs/3.png
+cover: /bkgs/3.jpg
 modify_date: 2021-10-5
 show_author_profile: true
 excerpt_type: html
