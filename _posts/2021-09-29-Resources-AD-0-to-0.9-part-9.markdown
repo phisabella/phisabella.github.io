@@ -52,3 +52,9 @@ article_header:
 | [BloodHound](https://github.com/BloodHoundAD/BloodHound)     | BloodHound 允许你用许多不同的LDAP请求和其他请求来映射Active       Directory网络。如果您想了解Active Directory侦察，应该看看。 |
 | [Powerview](https://github.com/BC-SECURITY/Empire/blob/master/data/module_source/situational_awareness/network/powerview.ps1) | 一个Powershell工具，它实现了许多Active Directory LDAP和其他协议查询，以从Active       Directory检索[all        kind of information](https://gist.github.com/HarmJ0y/184f9822b195c52dd50c379ed3117993)。 |
 | [Empire](https://github.com/BC-SECURITY/Empire)              | 在Active Directory机器中部署代理的套件，允许您执行各种攻击。[data/module_source](https://github.com/BC-SECURITY/Empire/tree/master/data/module_source)目录包含许多工具，用于对Active       directory执行侦察和攻击，值得一看。 |
+
+
+
+# 后记
+
+这篇文章自己看了一遍，最近又整理了一遍，但还是有很多不太理解的地方，还得继续学习。这个系列的笔记就像作者说的一样当作索引就好，之后有遇到熟悉又陌生的内容再回来看看，有了新的发现再加一些自己的理解（毕竟到后面几篇更像翻译而不是笔记了hhh）。
