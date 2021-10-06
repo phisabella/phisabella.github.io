@@ -66,7 +66,7 @@ You can check the [ports required by Windows services in the Microsoft docs](htt
 
 共享类似于计算机共享的文件夹，以便网络中的其他计算机/用户访问。可以用 [net view](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-R2-and-2012/hh875576(v=ws.11)) command, the [Get-SmbShare](https://docs.microsoft.com/en-us/powershell/module/smbshare/get-smbshare?view=windowsserver2019-ps) Powershell Cmdlet, or [smbclient.py](https://github.com/SecureAuthCorp/impacket/blob/master/examples/smbclient.py). 列出共享。
 
-```cmd
+```powershell
 ###Shares of the domain DC
 C:\> net view \\dc01.contoso.local /all
 Shared resources at \\dc01.contoso.local
@@ -86,7 +86,7 @@ The command completed successfully.
 
 要在UNC路径中引用目标计算机，可以使用其dns名称或NetBIOS名称。例如，net view [\\dc01.contoso.local](file://dc01.contoso.local) or net view [\\dc01](file://dc01)
 
-```cmd
+```powershell
 ###List folders inside a share
 C:\> dir \\dc01\sysvol
  Volume in drive \\dc01\sysvol has no label.
@@ -103,7 +103,7 @@ C:\> dir \\dc01\sysvol
 
 共享很方便，不需要特殊的程序或类似的东西，同样对攻击者来说也很方便
 
-```cmd
+```powershell
 ###Creating a shared that can be accesed by everyone
 net share Temp=C:\Temp /grant:everyone,FULL
 ```
@@ -122,7 +122,7 @@ IPC$ shared 是一个特殊的共享文件，用于创建 [named pipes](https://
 
 SYSVOL共享通常用于存储计算机用于读取域中部署的组策略的组策略模板。[Sometimes these policies contains passwords](https://adsecurity.org/?p=2288)。您可以使用 \\\ \<domain>\SYSVOL UNC路径访问SYSVOL共享
 
-```cmd
+```powershell
 ###List SYSVOL folders
 PS C:\> dir \\contoso.local\SYSVOL\contoso.local
 

@@ -111,7 +111,7 @@ New-PSSession -Credential $(Get-Credential) -Authentication Credssp
 
 凭证缓存在本地lsass进程以用来网络连接，然后进程需要时就可以网络登陆来拿域的远程资源
 
-```cmd
+```powershell
 ###Perform a NewCredentials logon with runas
 runas /netonly /user:CONTOSO\OtherUser cmd
 ```

@@ -576,7 +576,7 @@ SID历史记录用于迁移目的。当用户从一个域迁移到另一个域�
 
 实际上，如果渗透域的根林并创建一个包含“Enterprise Admins”组（RID为519，默认情况下包含在impacket和mimikatz中）的黄金票据，则不需要创建具有额外SID的Golder票据，因为您已经拥有控制所有林的权限，即使是隔离的域（因为没有额外的SID进行过滤）。只有在您渗透了非根域并且希望渗透林的另一个域（过滤额外SID的隔离域除外）时，才需要向额外SID添加“企业管理员”。
 
-```cmd
+```powershell
 ###Pass-The-Ticket with Enterprise Admins in extra SIDs
 PS C:\> .\mimikatz.exe
 
@@ -1159,7 +1159,7 @@ S4U2Self 也可以跨域
 
 Constrained Delegation LDAP搜索条件：
 
-```ldap
+```powershell
 ###LDAP filter to retrieve accounts related to Constrained Delegation
 (|
   (UserAccountControl:1.2.840.113556.1.4.803:=16777216)
@@ -1170,7 +1170,7 @@ Constrained Delegation LDAP搜索条件：
 
 要找受约束委托相关账户，工具： [Powerview](https://github.com/EmpireProject/Empire/blob/master/data/module_source/situational_awareness/network/powerview.ps1) , [impacket findDelegation.py](https://github.com/SecureAuthCorp/impacket/blob/master/examples/findDelegation.py) script, the [Powershell ActiveDirectory module](https://docs.microsoft.com/en-us/powershell/module/addsadministration/?view=win10-ps) or [ldapsearch](https://linux.die.net/man/1/ldapsearch).
 
-```ldap
+```powershell
 ###LDAP filter to retrieve accounts protected against delegation：
 (|
   (memberof:1.2.840.113556.1.4.1941:=CN=Protected Users,CN=Users,DC=<domain>,DC=<dom>)
