@@ -1,6 +1,6 @@
 ---
 layout: article
-title: SQL injection--Web Security Academy 1
+title: WSAcademy 1 -- SQL injection
 mathjax: true
 key: a00002	
 cover: /bkgs/1.png
@@ -8,7 +8,7 @@ modify_date: 2021-07-14
 show_author_profile: true
 excerpt_type: html
 tag: 
-- Academy
+- WSAcademy 
 - SQLi
 mode: immersive
 header:
