@@ -24,7 +24,7 @@ article_header:
 
 这篇是Web Security Academy的OS command injection部分<!--more-->
 
-原文：[What is OS command injection, and how to prevent it? | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/os-command-injection)
+原文：[What is OS command injection, and how to prevent it? ](https://portswigger.net/web-security/os-command-injection)
 
 # OS command injection
 
@@ -48,7 +48,7 @@ Many instances of OS command injection are blind vulnerabilities.
 
 This command will cause the application to ping its loopback network adapter for 10 seconds.
 
-|| to comment （wtf？）
+`||` to comment （wtf？）
 
 ## redirecting output
 
@@ -74,10 +74,12 @@ result would be :  wwwuser.kgji2ohoyw.web-attacker.com
 
 work on both Windows and Unix-based systems:
 
-- &
-- &&
-- |
-- ||
+```
+&
+&&
+|
+||
+```
 
 only on Unix-based systems:
 

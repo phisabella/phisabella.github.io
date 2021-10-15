@@ -23,9 +23,9 @@ article_header:
 
 这篇是Web Security Academy的Directory traversal部分<!--more-->
 
-原文：[What is directory traversal, and how to prevent it? | Web Security Academy (portswigger.net)](https://portswigger.net/web-security/file-path-traversal)
+原文：[What is directory traversal, and how to prevent it?  ](https://portswigger.net/web-security/file-path-traversal)
 
-# Reading arbitrary files via directory traversal
+# Reading arbitrary files
 
 - **On Unix-based operating systems**
 
