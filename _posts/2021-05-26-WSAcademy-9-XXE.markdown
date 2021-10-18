@@ -4,7 +4,7 @@ title: WSAcademy 9 -- XXE
 mathjax: true
 key: a00020
 cover: /bkgs/1.png
-modify_date: 2021-10-15
+modify_date: 2021-10-18
 show_author_profile: true
 excerpt_type: html
 tag: 
