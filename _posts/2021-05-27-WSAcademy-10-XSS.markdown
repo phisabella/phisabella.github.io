@@ -322,7 +322,7 @@ To trigger the exploit on yourself, press one of the following key combinations:
 
 ### Terminating the existing script
 
-```HTML
+```html
 <script>
 ...
 var input = 'controllable data here';
@@ -512,7 +512,7 @@ path属性特定于Chrome，包含触发事件的元素数组
 
 数组中的最后一个元素包含窗口对象。
 
-通常，|在JavaScript中是一个bitwise or operation，但在AngularJS中它表示一个过滤器操作，在本例中是orderBy过滤器。冒号表示发送到筛选器的参数。在参数中，我们没有直接调用alert函数，而是将其指定给变量z。仅当orderBy操作到达$event.path数组中的窗口对象时，才会调用该函数。这意味着可以在窗口范围内调用它，而无需显式引用窗口对象，从而有效地绕过AngularJS的窗口检查。
+通常，`|`在JavaScript中是一个bitwise or operation，但在AngularJS中它表示一个过滤器操作，在本例中是orderBy过滤器。冒号表示发送到筛选器的参数。在参数中，我们没有直接调用alert函数，而是将其指定给变量z。仅当orderBy操作到达$event.path数组中的窗口对象时，才会调用该函数。这意味着可以在窗口范围内调用它，而无需显式引用窗口对象，从而有效地绕过AngularJS的窗口检查。
 
 ### How to prevent AngularJS injection
 
