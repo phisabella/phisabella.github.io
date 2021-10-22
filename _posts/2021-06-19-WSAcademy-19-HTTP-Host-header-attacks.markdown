@@ -196,3 +196,110 @@ X-Forwarded-Host: bad-stuff-here
 - Forwarded
 
 网站可能无意中支持这种行为，这通常是因为它们**使用的某些第三方技术**默认启用了其中一个或多个headers。
+
+## How to exploit the HTTP Host header
+
+- Password reset poisoning 
+- Web cache poisoning
+- Exploiting classic server-side vulnerabilities
+- Bypassing authentication 
+- Virtual host brute-forcing
+- Routing-based SSRF 
+
+### Password reset poisoning
+
+in authentication
+
+### Web cache poisoning via the Host header
+
+在探测潜在的主机头攻击时，您经常会遇到看似易受攻击的行为，这些行为不可直接利用
+
+但是，如果目标使用**web缓存**，通过说服缓存向其他用户提供中毒响应，可能会将此无用的、反映出来的漏洞转化为危险的、存储的漏洞。
+
+### Exploiting classic server-side vulnerabilities
+
+每个HTTP头都是利用经典服务器端漏洞的潜在载体，Host header也不例外。像SQLi
+
+### Accessing restricted functionality
+
+出于相当明显的原因，网站通常只允许内部用户访问某些功能
+
+然而，一些网站的访问控制功能做出了有缺陷的假设，允许您通过对**主机头进行简单修改**来绕过这些限制
+
+```
+lab:
+Host:localhost
+```
+
+### Accessing internal websites with virtual host brute-forcing
+
+公司有时会犯错误，在同一台服务器上托管可公开访问的网站和私人内部网站。
+
+服务器通常具有公用和专用IP地址。由于**内部主机名可能解析为私有IP地址**，因此，仅通过查看DNS记录无法始终检测到这种情况：
+
+```
+www.example.com: 12.34.56.78
+intranet.example.com: 10.0.0.132
+```
+
+在某些情况下，内部站点甚至可能没有与其关联的公共DNS记录。尽管如此，攻击者通常可以访问其有权访问的任何服务器上的任何虚拟主机。
+
+### Routing-based SSRF
+
+典型的SSRF漏洞通常基于XXE或可利用的业务逻辑。
+
+另一方面，基于路由的SSRF依赖于利用许多基于云的体系结构中普遍存在的中间组件
+
+如果它们被不安全地配置为基于未验证的Host header转发请求，则可以操纵它们将请求错误地路由到攻击者选择的任意系统。
+
+如果您在主机标头中提供 Collaborator server的域，然后从目标服务器或路径系统中的其他服务器接收DNS查找，这表示您可能能够将请求路由到任意域。
+
+```
+lab1:
+using collaborator to verify Host
+brute-force the Host
+
+lab2:
+absolute URL   
+GET https://your-lab-id.web-security-academy.net/
+```
+
+#### SSRF via a malformed request line
+
+自定义代理有时无法正确验证请求行，这可能会允许您提供异常、格式错误的输入，并产生不好的结果。
+
+例如，反向代理可能从请求行获取路径，并在其前面加上http://backend-server，并将请求路由到该上游URL。如果路径以/character开头是正常的，但是如果以@character开头呢？
+
+`GET @private-intranet/example HTTP/1.1`
+
+生成的上游URL将是http://backend-server@private-intranet/example，大多数HTTP库将其解释为使用用户名backend-server访问 private-intranet的请求。
+
+拓展：[Cracking the lens: targeting HTTP's hidden attack-surface | PortSwigger Research](https://portswigger.net/research/cracking-the-lens-targeting-https-hidden-attack-surface)
+
+## How to prevent HTTP Host header attacks
+
+最简单的方法是避免在服务器端代码中使用Host header
+
+仔细检查每个URL是否真的需要是绝对路径的。相对URL通常能满足需要
+
+- 保护绝对URL
+
+  当必须使用绝对URL时，应要求在**配置文件中手动指定当前域**，**并引用此值而不是Host header**。这种方法可以消除如密码重置中毒的威胁。
+
+- 验证Host header
+
+  这应该包括对照允许域的**白名单**进行检查，并拒绝或重定向对未识别主机的任何请求
+
+  例如，Django框架在设置文件中提供了`ALLOWED_HOSTS`选项
+
+- 不要支持Host override headers
+
+  不要支持可能用于构造这些攻击的**附加头**，特别是**X-Forwarded-Host**，这一点也很重要。请记住，**默认情况下可能支持这些功能**。
+
+- 白名单允许的域
+
+  为了防止对内部基础结构的基于路由的攻击，您应该配置负载平衡器或任何反向代理，以便仅将请求转发到**允许域的白名单**。
+
+- 只使用内部虚拟主机时要小心
+
+  使用虚拟托管时，应**避免将内部网站和应用程序与面向公众的内容托管在同一服务器**上。否则，攻击者可能会通过主机头操纵来访问内部域。
