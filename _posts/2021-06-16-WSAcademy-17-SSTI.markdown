@@ -22,7 +22,7 @@ article_header:
     src: /docs/assets/images/cover3.jpg
 ---
 
-这篇是Web Security Academy的SSTI部分<!--more-->
+这篇是Web Security Academy的SSTI部分<!--more-->因为模板似乎会渲染笔记中的代码而报错emmm，所以个别用空格分隔了。~~似乎还是有一些有问题，先不管了~~
 
 原文：[Server-Side Template Injection](https://portswigger.net/research/server-side-template-injection)
 
