@@ -127,7 +127,7 @@ chain.transform("qwe");
 
 是一个可控的，需要继承`Annotation`,那就应该是`Annotation`的子类（所有**注解**类型的公用接口），于是找到`java.lang.annotation.Retention.class`这个注解类（map的键必须有"value"），但这个类的访问权限不是public,而是包访问权限，构造poc的时候只有通过反射机制来实例化它，至此构造结束。
 
-#### 构造链
+#### 调用链
 
 `sun.reflect.annotation.AnnotationInvocationHandler`(`readObject()`的`setValue`)  -->  
 
@@ -137,7 +137,7 @@ chain.transform("qwe");
 
  `ConstantTransformer` and `InvokerTransformer`(RCE)
 
-### CC1--LazyMap(3.1-3.2.1，jdk<1.8)
+### CC1--LazyMap+InvokerTransformer(3.1-3.2.1，jdk<1.8)
 
 **CommonsCollections**版本主要是针对在**ysoserial**里的
 
@@ -169,7 +169,7 @@ chain.transform("qwe");
 
 ![image-20220223155214284](/pics/cc/14)
 
-#### 构造链
+#### 调用链
 
 `sun.reflect.annotation.AnnotationInvocationHandler`(`readObject()`的`get`)  -->  
 
@@ -179,7 +179,34 @@ chain.transform("qwe");
 
  `ConstantTransformer` and `InvokerTransformer`(RCE)
 
-### CC2--LazyMap(4.0，jdk<7u21)
+```
+/*
+	Gadget chain:
+		ObjectInputStream.readObject()
+			AnnotationInvocationHandler.readObject()
+				Map(Proxy).entrySet()
+					AnnotationInvocationHandler.invoke()
+						LazyMap.get()
+							ChainedTransformer.transform()
+								ConstantTransformer.transform()
+								InvokerTransformer.transform()
+									Method.invoke()
+										Class.getMethod()
+								InvokerTransformer.transform()
+									Method.invoke()
+										Runtime.getRuntime()
+								InvokerTransformer.transform()
+									Method.invoke()
+										Runtime.exec()
+
+	Requires:
+		commons-collections
+ */
+```
+
+
+
+### CC2--PriorityQueue+TemplatesImpl(4.0，jdk<=7u21)
 
 有个不同点在于没有构造`Runtime`，而是使用了7u21的RCE，简言之只要能调用包含恶意字节码的`TemplatesImpl`对象的利用链中的任意函数(`getOutputProperties`、`newTransformer`等等)，就能造成RCE
 
@@ -195,7 +222,7 @@ chain.transform("qwe");
 
 ![image-20220224114904751](/pics/cc/16)
 
-需要找一个调用其`compare`的类，找到`PriorityQueue`，其`siftDownUsingComparator`符合条件，
+需要找一个调用其`compare`的类，找到`PriorityQueue`，其`siftDownUsingComparator`符合条件，把`TransformingComparator`放到`PriorityQueue`里就能调用到`PriorityQueue`的`compare`方法
 
 ![image-20220224115125973](/pics/cc/17)
 
@@ -209,7 +236,7 @@ chain.transform("qwe");
 
 至此利用链结束
 
-#### 构造链
+#### 调用链
 
 `PriorityQueue`的`readObject`调用自己的`heapify`，一直调用到`siftDownUsingComparator` ,方法内调用`compare`-->
 
@@ -221,3 +248,204 @@ chain.transform("qwe");
 
 ![21](/pics/cc/21)
 
+```
+/*
+	Gadget chain:
+		ObjectInputStream.readObject()
+			PriorityQueue.readObject()
+				...
+					TransformingComparator.compare()
+						InvokerTransformer.transform()
+							Method.invoke()
+								Runtime.exec()
+ */
+```
+
+
+
+### CC3--LazyMap+InstantiateTransformer+TemplatesImpl(3.1-3.2.1，jdk<=7u21)
+
+和CC1基本一样，区别在于，RCE的点还是用的CC2的`TemplatesImpl`,因此反射调用的是`InstantiateTransformer`而不是`InvokerTransformer`
+
+![image-20220224150652592](/pics/cc/22)
+
+还是和CC2一样的，如果要`TemplatesImpl`RCE，需要找`newTransformer`被调用的地方，`InstantiateTransformer`的`transform`可以生成任意类的实例，能够顺利进入RCE利用点，
+
+![image-20220224150707144](/pics/cc/23)
+
+而`InstantiateTransformer`自己的`transform`又可以用CC1的`LazyMap`来调用`ChainedTransformer`的`transform`调用，`LazyMap`的`entrySet`方法又被`AnnotationInvocationHandler`的`readObject`调用，构造完成。
+
+```
+ * Variation on CommonsCollections1 that uses InstantiateTransformer instead of InvokerTransformer.
+```
+
+### CC4--PriorityQueue+InstantiateTransformer+TemplatesImpl(4.0，jdk<=7u21)
+
+改进了CC2，类似CC3和CC2的结合。
+
+`PriorityQueue`的`readObject`一路调下去调的是`ChainedTransformer`然后到`InstantiateTransformer`而不是`InvokerTransformer`，其他都是重复的内容
+
+![image-20220224154853119](/pics/cc/24)
+
+```
+ * Variation on CommonsCollections2 that uses InstantiateTransformer instead of InvokerTransformer.
+```
+
+### CC5--LazyMap（3.1-3.2.1，jdk8u76）
+
+~~终于不用1.7了~~  jdk1.8对老朋友`AnnotationInvocationHandler`进行了限制，需要新的类
+
+#### 思路
+
+于是找到了`BadAttributeValueExpException`，其实变化不大，就是调用` LazyMap.get()`方法的地方变了，`BadAttributeValueExpException`（3.2.2被拉黑）的`readObject()`
+
+![image-20220224165241850](/pics/cc/25)
+
+有一个`toString`方法,即`TiedMapEntry`
+
+![26](/pics/cc/26)
+
+然后就调用到`get`了，` LazyMap.get()`被调用，后面的就很熟悉了，和CC1一样，还简单一些
+
+![image-20220224165337417](/pics/cc/28)
+
+#### 调用链
+
+`BadAttributeValueExpException`的 `readObject()`-->
+
+`TiedMapEntry toString() `的`getValue()`-->
+
+`getValue() `调`get()` -->
+
+` ChainedTransformer.transform()` -->
+
+ `ConstantTransformer` and `InvokerTransformer`(RCE)
+
+```
+/*
+	Gadget chain:
+        ObjectInputStream.readObject()
+            BadAttributeValueExpException.readObject()
+                TiedMapEntry.toString()
+                    LazyMap.get()
+                        ChainedTransformer.transform()
+                            ConstantTransformer.transform()
+                            InvokerTransformer.transform()
+                                Method.invoke()
+                                    Class.getMethod()
+                            InvokerTransformer.transform()
+                                Method.invoke()
+                                    Runtime.getRuntime()
+                            InvokerTransformer.transform()
+                                Method.invoke()
+                                    Runtime.exec()
+
+	Requires:
+		commons-collections
+ */
+ This only works in JDK 8u76 and WITHOUT a security manager
+```
+
+### CC6--HashSet+LazyMap(3.1-3.2.1，jdk1.7,1.8)
+
+CC6同样使用的是`LazyMap`来触发`ChainedTransformer`的`transform`，不同的是在触发`LazyMap.get()`时用了不同的方法
+
+#### 思路
+
+CC6用了`HashSet`的`readObject()`
+
+![image-20220224171522615](/pics/cc/29)
+
+`TiedMapEntry`对象被带入`put`函数
+
+![30](/pics/cc/30)
+
+在`put`进入`hash`函数，
+
+![image-20220224172525489](/pics/cc/31)
+
+在`hashCode`函数中会调用恶意的`TiedMapEntry`对象自身的`getValue`函数
+
+![image-20220224172848602](/pics/cc/32)
+
+`getValue`这里就会调用`LazyMap`的`get`函数了
+
+![image-20220224173101482](/pics/cc/34)
+
+![image-20220224172601833](/pics/cc/33)
+
+然后就是熟悉的`LazyMap`调用链了
+
+#### 调用链
+
+`HashSet.readObject()` 的 `put`-->
+
+ `HashMap.put()` 和`hash()` ，调`hashCode()`-->
+
+ `TiedMapEntry.hashCode()`和`getValue()`，调`this.map.get(this.key)` -->
+
+`LazyMap`(`this.factory.transform(key)`，即`ChainedTransformer`的`transform()`) -->
+
+`ChainedTransformer`循环调用数组的`transform()` -->
+
+ `ConstantTransformer` and `InvokerTransformer`(RCE)
+
+```
+/*
+	Gadget chain:
+	    ObjectInputStream.readObject()
+            HashSet.readObject()
+               HashMap.put()
+               HashMap.hash()
+                    TiedMapEntry.hashCode()
+                    TiedMapEntry.getValue()
+                        LazyMap.get()
+                            ChainedTransformer.transform()
+                            InvokerTransformer.transform()
+                           	reflect.Method.invoke()
+                                java.lang.Runtime.exec()
+*/
+```
+
+### CC7--Hashtable+LazyMap(3.1-3.2.1，jdk1.7,1.8)
+
+#### 思路
+
+这次是`Hashtable`的`readObject()`了
+
+![image-20220224183806847](/pics/cc/36)
+
+会调用`readHashtable`，
+
+![image-20220224182847018](/pics/cc/35)
+
+然后是`reconstitutionPut`，这里需要满足`e.hash == hash `，才能到`e.key.equals(key)`的`equals()`，因此需要构造hash相同的两个`lazymap`强制进行比较
+
+**注**：因为两个`lazymap`的hash相同，所以`hashtable`放进第二个`lazymap`时，会把第一个`lazymap`的`key`值`"yy"`放到第二个`lazymap`中(首先`lazymap.get(‘yy’)`尝试从第二个`lazymap`中拿)，此时将导致`lazymap2`中新添加`yy->processImpl`键值对，造成第二个`lazymap`空间大小为2，和第一个不一样，hash不同无法继续，改成`lazyMap2.remove("yy")`即可
+
+![image-20220224184517358](/pics/cc/37)
+
+
+
+![38](/pics/cc/38)
+
+`equal`判断的时候就会去取值，即调用`get()`，进入`LazyMap`调用链
+
+![39](/pics/cc/39)
+
+### 调用链
+
+```
+/*
+    Payload method chain:
+    java.util.Hashtable.readObject
+    	java.util.Hashtable.reconstitutionPut
+    		org.apache.commons.collections.map.AbstractMapDecorator.equals
+    			java.util.AbstractMap.equals
+   					 org.apache.commons.collections.map.LazyMap.get
+   						 org.apache.commons.collections.functors.ChainedTransformer.transform
+    					 org.apache.commons.collections.functors.InvokerTransformer.transform
+    					 java.lang.reflect.Method.invoke
+    						java.lang.Runtime.exec
+*/
+```
