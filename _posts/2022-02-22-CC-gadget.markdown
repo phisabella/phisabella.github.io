@@ -1,0 +1,223 @@
+---
+layout: article
+title: CC gadget
+mathjax: true
+key: a00034
+cover: /bkgs/3.jpg
+modify_date: 2022-2-22
+show_author_profile: true
+excerpt_type: html
+tag: 
+- Web
+- serialization
+- Java
+mode: immersive
+header:
+  theme: dark
+article_header:
+  type: overlay
+  theme: dark
+  background_color: '#203028'
+  background_image:
+    gradient: 'linear-gradient(135deg, rgba(34, 139, 87 , .4), rgba(139, 34, 139, .4))'
+    src: /docs/assets/images/cover3.jpg
+---
+
+整理了一些有关CC链的笔记，也算重新梳理一下
+
+<!--more-->
+
+# CC链利用点
+
+## 反序列化理解
+
+说起Java RCE，第一反应就是要构造并执行`Runtime.getRuntime().exec("calc")`这句代码，而在Java反序列化中会自动触发`readObject()`方法，也就是说，如果要利用反序列化达到RCE的效果，就需要找到某个修改了`readObject()`的类，并且修改内容里有能构造（通过一系列调用）`Runtime.getRuntime().exec("calc")`的方法。
+
+## CC链RCE点
+
+有三个方法可以相互组合构造`Runtime.getRuntime().exec("calc")`，它们都实现了`TransFormer`这个接口，都有一个transform方法，`ConstantTransformer`可以执行`Runtime`，`InvokerTransformer`可以凑出后续的`getRuntime().exec("calc")`部分，在`ChainedTransformer`的`transform`方法里可以将上述两者拼接成一条完整的RCE命令。
+
+| InvokerTransformer                              | ConstantTransformer             | ChainedTransformer                                           |
+| ----------------------------------------------- | ------------------------------- | ------------------------------------------------------------ |
+| 构造函数接受三个参数                            | 构造函数接受一个参数            | 构造函数接受一个TransFormer类型的数组                        |
+| transform方法通过反射可以执行一个对象的任意方法 | transform返回构造函数传入的参数 | transform方法执行构造函数传入数组的每一个成员的transform方法 |
+
+代码如下:
+
+```java
+Transformer[] transformers_exec = new Transformer[]{
+    	#先实例化
+        new ConstantTransformer(Runtime.class),
+        new InvokerTransformer("getMethod",new Class[]{String.class,Class[].class},new Object[]{"getRuntime",null}),
+        new InvokerTransformer("invoke",new Class[]{Object.class, Object[].class},new Object[]{null,null}),
+        new InvokerTransformer("exec",new Class[]{String.class},new Object[]{"calc"})
+};
+Transformer chain = new ChainedTransformer(transformers_exec);
+#调用transform方法
+chain.transform("qwe");
+```
+
+![image-20220222173028243](/pics/cc/1)
+
+下面逐个介绍
+
+### ConstantTransformer
+
+![image-20220222170917126](/pics/cc/2)
+
+`transform`方法会返回构造函数的参数`iConstant`。因此实例化时传入`Runtime.class`，也会返回一样的内容。只需要调用`transform`方法。
+
+### InvokerTransformer
+
+![image-20220222171149845](/pics/cc/3)
+
+![image-20220222171155967](/pics/cc/4)
+
+` transform`用到了反射，执行了某个对象的某个方法，并且相关参数也是构造函数里的可控参数，因此也只需要调用`transform`方法即可。
+
+### ChainedTransformer
+
+![image-20220222171324507](/pics/cc/5)
+
+正好，`ChainedTransformer` 的`transform`函数会遍历构造函数中的`Transformer`数组，并调用数组中的每一个成员的`transform`方法，并且上一个成员调用返回的对象会作为下一个成员`transform`的参数，也就是说，只需要调用`ChainedTransformer` 的transform方法即可构造出`Runtime.getRuntime().exec("calc")`
+
+那么问题来了，怎么触发`ChainedTransformer`的`transform`方法？
+
+## 触发transform
+
+去寻找某个类，把包含恶意代码的transformerChain放到这个类里面，当对这个类的对象进行反序列化的时候会调用transformerChain的transform函数。
+
+### TransformedMap
+
+虽然没在CC链里出现，还是可以看一看找利用链的思路是什么样的
+
+**注：因为1.8删去了关键的`setValue`方法，因此只能在1.7下使用**
+
+#### 思路
+
+从挖洞的思路来讲此时应该搜索`transform(`关键字来寻找有相关调用的类，~~但既然是复现就直接跳过这一步~~，找到`TransformedMap`类，
+
+![](/pics/cc/6)
+
+![](../pics/cc/7)
+
+`TransformedMap`类里有三个`transform`调用，`keyTransformer` 和`valurTransformer`都是`Transformer`类型且可控，所以可以将其值赋为`ChainedTransformer`，但是这三个方法都是`protected`不能直接调用，找到4个`public`方法，其中有一个`put()`方法，调用了`transformKey`以及`transformValue`，这两个方法又都调用了transform方法，所以`TransformedMap`类可以满足需求
+
+![](/pics/cc/8)
+
+只需要实例化一个`TransforomedMap`对象，然后调用对象的`put`方法，就可以RCE。
+
+但是并不能在反序列化中触发，因为没有`readObject()`类，还需要一个重写`readObject()`类的方法，并能调用上述的方法。
+
+一般来讲会采取**向上回溯找方法**（`transformKey`、`transformValue`、`checkSetValue`）调用位置，或者**全局搜索`readObject()`**看看有没有哪个类直接就调用了这三个方法中的一个或者`readObject`中有可疑的操作，最后能够间接触发这几个方法。
+
+从名字就能推断`TransformedMap`其实是Map类型，范围就可以扩大到引用了Map的`readObject()`类，根据摸索~~git~~得到`TransformedMap`里的每个`entryset`在调用`setValue`方法时会自动调用`TransformedMap`类的`checkSetValue`方法
+
+![img](/pics/cc/11)
+
+因此就变成了找一个对`Map`类型的属性的`entry`进行了`setValue`操作的`readObject()`类，刚好`sun.reflect.annotation.AnnotationInvocationHandler`类就可以满足需求（但jdk1.8已经没有了setValue）
+
+![image-20220223115426157](/pics/cc/9)
+
+但有一个条件，`if (!var7.isInstance(var8) && !(var8 instanceof ExceptionProxy))`（其实就是var1不能被转化为var2即可）
+
+从截图代码可知，需要知道`this.type`是什么，
+
+![image-20220223120302596](/pics/cc/10)
+
+是一个可控的，需要继承`Annotation`,那就应该是`Annotation`的子类（所有**注解**类型的公用接口），于是找到`java.lang.annotation.Retention.class`这个注解类（map的键必须有"value"），但这个类的访问权限不是public,而是包访问权限，构造poc的时候只有通过反射机制来实例化它，至此构造结束。
+
+#### 构造链
+
+`sun.reflect.annotation.AnnotationInvocationHandler`(`readObject()`的`setValue`)  -->  
+
+`TransformedMap`(`checkSetValue` 调用`this.valueTransformer`即`ChainedTransformer`的`transform()`) -->
+
+`ChainedTransformer`循环调用数组的`transform()` -->
+
+ `ConstantTransformer` and `InvokerTransformer`(RCE)
+
+### CC1--LazyMap(3.1-3.2.1，jdk<1.8)
+
+**CommonsCollections**版本主要是针对在**ysoserial**里的
+
+#### 思路
+
+`LazyMap`有`this.factory.transform(key)`,而`this.factory`可控，`factory`传`ChainedTransformer`即可
+
+![image-20220223152541210](/pics/cc/12)
+
+然后找调用get的地方，老朋友`AnnotationInvocationHandler`的`invoke`符合条件，`this.memberValues`也是可控的（上个思路截图），传入`LazyMap`即可
+
+![image-20220223153224172](/pics/cc/13)
+
+找触发`AnnotationInvocationHandler.invoke()`的地方
+
+##### 动态代理
+
+被动态代理的对象**调用任意方法**都会通过对应的`InvocationHandler`的`invoke`方法触发
+
+(可以将InvocationHandler接口类看做一个中介类，中介类持有一个被代理对象即真实对象，在invoke()方法中调用了被代理对象相应的方法。通过聚合方式持有被代理对象的引用，把外部对invoke的调用最终都转为对被代理对象的调用。
+
+代理类调用自己方法时，通过自身持有的中介类对象来调用中介类对象的invoke方法，从而达到代理执行被代理对象的方法。也就是说，动态代理通过中介类实现了具体的代理功能，即**无侵入式的代码扩展，不用修改源码**)
+
+
+
+所以此时只需要创建一个`LazyMap`的动态代理，动态代理调用某个方法，但是反序列化需要`readObject`，即找一个类，其`readObject`方法可以通过动态代理调用`LazyMap`的某个方法(和直接调用`LazyMap`某个方法需要满足的条件几乎是一样的，因为某个类的动态代理与它本身实现了同一个接口)
+
+`AnnotationInvocationHandler`的`readObject`方法会调用某个`Map`类型对象的`entrySet()`方法，而`LazyMap`以及他的动态代理都是`Map`类型，可以满足需求
+
+![image-20220223155214284](/pics/cc/14)
+
+#### 构造链
+
+`sun.reflect.annotation.AnnotationInvocationHandler`(`readObject()`的`get`)  -->  
+
+`LazyMap`(`this.factory.transform(key)`，即`ChainedTransformer`的`transform()`) -->
+
+`ChainedTransformer`循环调用数组的`transform()` -->
+
+ `ConstantTransformer` and `InvokerTransformer`(RCE)
+
+### CC2--LazyMap(4.0，jdk<7u21)
+
+有个不同点在于没有构造`Runtime`，而是使用了7u21的RCE，简言之只要能调用包含恶意字节码的`TemplatesImpl`对象的利用链中的任意函数(`getOutputProperties`、`newTransformer`等等)，就能造成RCE
+
+#### 思路
+
+因此思路也有变化，只用到了`InvokerTransformer`（3.22被拉黑但是4.0又可以用了，然后又被拉黑了）
+
+首先得想办法触发`TemplatesImpl`的函数，正好`InvokerTransformer`就可以用反射执行某个对象的任意方法，这里传入`newTransformer`方法
+
+![111](/pics/cc/15)
+
+然后就是想办法调用`transform`方法,找到了`TransformingComparator`，
+
+![image-20220224114904751](/pics/cc/16)
+
+需要找一个调用其`compare`的类，找到`PriorityQueue`，其`siftDownUsingComparator`符合条件，
+
+![image-20220224115125973](/pics/cc/17)
+
+为什么选`PriorityQueue`，因为其重写了`readObject`，而且，会调用`heapify()`,可以一路调用到`siftDownUsingComparator`，并且可传入任意类型的对象，可以顺利引入`TemplatesImpl`
+
+![222](/pics/cc/18)
+
+![444](/pics/cc/19)
+
+![20](/pics/cc/20)
+
+至此利用链结束
+
+#### 构造链
+
+`PriorityQueue`的`readObject`调用自己的`heapify`，一直调用到`siftDownUsingComparator` ,方法内调用`compare`-->
+
+`InvokerTransformer`的`compare`调`this.transformer.transform`-->
+
+即`InvokerTransformer`的`transform`被调用-->
+
+一直被传递的`TemplatesImpl`的`newTransformer`被`invoke`，进入7u21 RCE
+
+![21](/pics/cc/21)
+
