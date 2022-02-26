@@ -143,13 +143,13 @@ chain.transform("qwe");
 
 ### InstantiateTransformer
 
-在CC3和CC4中使用，与
+在CC3和CC4中使用
 
 ![image-20220226173146004](/pics/cc/40)
 
-## 触发transform
+## CC链调试——触发transform
 
-去寻找某个类，把包含恶意代码的transformerChain放到这个类里面，当对这个类的对象进行反序列化的时候会调用transformerChain的transform函数。
+如果用一个词来总结CC链，那一定是“transform”，不管怎么变化，用什么类来改写还是调用，最终都是要想办法调用四个`transform`里的某一个某几个`transform`的`transform()`函数。
 
 ### TransformedMap
 
