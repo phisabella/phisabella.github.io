@@ -4,7 +4,7 @@ title: CC gadget
 mathjax: true
 key: a00034
 cover: /bkgs/3.jpg
-modify_date: 2022-2-22
+modify_date: 2022-2-26
 show_author_profile: true
 excerpt_type: html
 tag: 
@@ -53,13 +53,15 @@ CC1中用了`LazyMap`的`get()`函数来调三个Transformer，再用重写了�
 
 随后又衍生出CC6（`HashSet`）和CC7（`Hashtable`）增加CC链的适用性
 
-#### CC2/CC3/CC4
+#### CC2/CC3/CC4/CB1
 
 CC2没用三个Transformer的组合，用的是7u21RCE，为此引入了`TemplatesImpl`，为了调用`TemplatesImpl`的任意方法（`newTransformer`）使用了`InvokerTransformer`来反射执行，`TransformingComparator`的`compare`来调`transform`,使用`PriorityQueue`来调`compare`
 
 CC3将CC1和CC2结合，用`InstantiateTransformer`代替`InvokerTransformer`，调`transform`前和CC1一样，后面和CC2一样
 
 CC4将CC2和CC3结合，用`ConstantTransformer`代替`TransformingComparator`来调`transform`,其他和CC2一样
+
+（**题外话**：CB1链其实和CC2有些相似，都是`PriorityQueue`为入口，`TemplatesImpl`来执行，区别在于中间调用部分，CC2用的是`TransformingComparator(InvokerTransformer)`，而CB1用了`BeanComparator`；CC2在`siftDownUsingComparator` 调的是`InvokerTransformer`的`compare`，而CB1调的是`BeanComparator`的）
 
 ### 四个Transformer
 
@@ -513,3 +515,11 @@ CC6用了`HashSet`的`readObject()`
     						java.lang.Runtime.exec
 */
 ```
+
+## 参考
+
+[javasec/3. apache commons-collections中的反序列化](https://github.com/Maskhe/javasec/blob/master/3. apache commons-collections中的反序列化.md)
+
+[玩转Ysoserial-CommonsCollection的七种利用方式分析 ](https://www.freebuf.com/articles/web/214096.html)
+
+[java反序列化-ysoserial-调试分析总结篇(1) - tr1ple](https://www.cnblogs.com/tr1ple/p/12378269.html)
