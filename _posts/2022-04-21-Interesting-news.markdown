@@ -1,10 +1,10 @@
 ---
 layout: article
-title: Interesting news in 2022-04
+title: Interesting news
 mathjax: true
 key: a00035
 cover: /bkgs/3.jpg
-modify_date: 2022-5-2
+modify_date: 2022-5-22
 show_author_profile: true
 excerpt_type: html
 tag: 
@@ -21,9 +21,9 @@ article_header:
     src: /docs/assets/images/cover3.jpg
 ---
 
-Project Zero 对 2021 年野外漏洞利用情况的总结分析，一些笔记啥的
+比较有意思的内容。之后应该会把有意思但比较零碎或不太成体系的放在这里？
 
-4月或之前的比较有意思的内容。之后应该会把有意思但比较零碎或不太成体系的放在这里？
+一些比较有意思的内容。之后应该会把有意思但比较零碎或不太成体系的放在这里？
 
 <!--more-->
 
@@ -92,3 +92,15 @@ https://www.cysrc.com/blog/virus-total-blog/
 有个有意思的问题，CVE识别规则只认终端用户和网络管理员可以直接管理的漏洞，但是云上漏洞属于厂商自己，现有CVE规则不太适用于云
 
 https://threatpost.com/cve-cloud-bug-system/179394/
+
+# 华为任意APP下载
+
+利用似乎还蛮简单的？最后Timeline部分挺有意思
+
+https://evowizz.dev/blog/huawei-appgallery-vulnerability
+
+# swagger-ui XSS
+
+比较老的问题，但是还有很多没修，问题主要出在过期的`DomPurify`，范围：>=3.14.1 < 3.38.0，升到4.13.0即可
+
+https://www.vidocsecurity.com/blog/hacking-swagger-ui-from-xss-to-account-takeovers/
