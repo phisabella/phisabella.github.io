@@ -4,7 +4,7 @@ title: Interesting news
 mathjax: true
 key: a00035
 cover: /bkgs/3.jpg
-modify_date: 2022-5-22
+modify_date: 2022-7-9
 show_author_profile: true
 excerpt_type: html
 tag: 
@@ -25,7 +25,7 @@ article_header:
 
 <!--more-->
 
-# PZ 对2021年野外漏洞利用情况的总结分析
+# P0 对2021年野外漏洞利用情况的总结分析
 
 Project Zero认为2021的wild 0-day增加，原因应该归于**检测**和**披露**的增加（比2019多了一倍），而不是wild 0-day本身的增加
 
@@ -55,7 +55,7 @@ Project Zero认为2021的wild 0-day增加，原因应该归于**检测**和**披
 
 
 
-PZ的目标是迫使攻击者在每次他们的漏洞被检测到时都需要从头开始
+P0的目标是迫使攻击者在每次他们的漏洞被检测到时都需要从头开始
 
 尽管大部分人不会成为0-day的攻击目标，但0-day的攻击本身影响着我们所有人
 
@@ -102,3 +102,22 @@ https://evowizz.dev/blog/huawei-appgallery-vulnerability
 比较老的问题，但是还有很多没修，问题主要出在过期的`DomPurify`，范围：>=3.14.1 < 3.38.0，升到4.13.0即可
 
 https://www.vidocsecurity.com/blog/hacking-swagger-ui-from-xss-to-account-takeovers/
+
+# P0 2022
+
+至少有一半的0 day是之前出现过的漏洞的变体，即之前的漏洞并没有很好的修复，比如只修了PoC针对的地方，但是没有从根本上修复，换一个路径又能触发相同的漏洞点；或者说曾经修复了的地方又再次出现了
+
+建议：
+1.分析漏洞根源
+这样能保证漏洞修复，而不仅是针对PoC patch
+
+2.变量分析
+分析其他类似的漏洞，
+
+3. patch 分析
+发布补丁的同时发布修复的思路，让发现者能分析是否真正修复了
+
+4.分析漏洞利用技术
+分析原始漏洞数据和利用手段，将其”平常化“而不是”特例化“
+
+最后还是日常呼吁业界多共享相关信息
