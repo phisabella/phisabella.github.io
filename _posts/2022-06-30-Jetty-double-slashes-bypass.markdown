@@ -66,7 +66,7 @@ article_header:
 
 ## 测试结论
 
-测试了Spring Boot默认集成的Jetty 9.4.42 和9.x最新版本9.4.48.v20220622，10.0.1-6，在10.0.5以前`//`， ` /;/` 以及`/;{任意字符}/`（本质上还是`//`）可以绕过 ，10.0.5 以后加上了URI过滤，模糊请求会在进入Filter流程前就返回400 reason: Ambiguous empty segment in URI
+测试了Spring Boot默认集成的Jetty 9.4.42 和9.x最新版本9.4.48.v20220622，10.0.1-6，在10.0.5以前`//`， `/;/` 以及`/;{任意字符}/`（本质上还是`//`）可以绕过 ，10.0.5 以后加上了URI过滤，模糊请求会在进入Filter流程前就返回400 reason: Ambiguous empty segment in URI
 
 这与Jetty自身开发特性有关，在FIlter没有设置为通配符*的情况下，比如/*，Jetty在Filter匹配上最终采用的是`String.equal()`函数，对字符串进行严格匹配，因此在过滤不严的情况下会产生绕过
 
