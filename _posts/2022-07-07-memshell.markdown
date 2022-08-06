@@ -1,0 +1,588 @@
+---
+layout: article
+title: 内存马整理
+mathjax: true
+key: a00039
+cover: /bkgs/3.jpg
+modify_date: 2022-7-12
+show_author_profile: true
+excerpt_type: html
+tag: 
+- Java
+- memshell
+mode: immersive
+header:
+  theme: dark
+article_header:
+  type: overlay
+  theme: dark
+  background_color: '#203028'
+  background_image:
+    gradient: 'linear-gradient(135deg, rgba(34, 139, 87 , .4), rgba(139, 34, 139, .4))'
+    src: /docs/assets/images/cover3.jpg
+---
+在研究近期新出现的WebSocket内存马的时候，对常规内存马也进行了学习和研究作为横向对比，并将内存马相关的笔记整理到这里。顺序大概先是WS内存马、常规内存马、内存马基础知识
+<!--more-->
+
+# WebSocket内存马
+
+出处： https://veo.pub/2022/memshell/
+
+下载： https://github.com/veo/wsMemShell
+
+JSR356 是java制定的websocket编程规范，属于Java EE 7 的一部分，所以要实现websocket内存马并不需要任何第三方依赖
+
+注入一个websocket服务，路径为/x，注入后利用ws连接即可执行命令
+
+创建一个ServerEndpointConfig，获取ws ServerContainer，加入 ServerEndpointConfig
+
+注入一个websocket服务，路径为/x，注入后利用ws连接即可执行命令
+
+通过emshell scanner查询不到任何异常（因为根本就没注册新的 Listener、servlet 或者 Filter）
+
+并且从流量层面也看不出明显特征
+
+本地测试截图，用的是Jetty做服务器。
+
+![ws-mem](/pics/ws-mem.png)
+
+场景：
+
+不会注册新的 Listener、servlet 或者 Filter，较为隐蔽
+
+利用反序列化漏洞直接注入websocket代理内存马，然后直接连上用上全双工通信协议的代理。
+
+注入完内存马以后，使用 Gost： https://github.com/go-gost/gost 连接代理
+
+./gost -L "socks5://:1080" -F "ws://127.0.0.1:8080?path=/proxy"
+
+然后连接本地1080端口socks5即可使用代理
+
+## **建议**
+
+**在Nginx代理Web服务器的场景下，需要先在Nginx配置加上WS代理相关部分，才能在创建WS内存马后用WS://访问**
+
+内存马本身不是一种攻击手法，而是利用方式，因此需要结合某种攻击手法来配合利用，注入一般有两种，一种是通过Java原生或者组件的**反序列化**漏洞注入，另一种是通过**文件上传**的形式上传jsp或jar包并执行。
+
+从防御的角度上讲，首先应当防御反序列化和类文件上传的问题
+
+其次是对内存马的检测和排除，针对WebSocket内存马的检测可以参考常规手法：
+
+1.检测/监控Websocket的EndPoint（比如创建，数量），禁止或限制非注解方式创建的Endpoint
+
+2.检测是否有敏感词（shell，cmd）或敏感调用（比如Runtime），然后将其删除或者无害化处理
+
+**目前有的参考方式为：利用HSDB到内存中寻找Endpoint的class，根据特征识别出WS内存马**，参考地址： https://paper.seebug.org/1935/#ws
+
+**2.找到对应 context 的 configExactMatchMap，里面保存了所有注册的WS服务，每个服务就是该map中的一个元素**，**可以直接在MAP中移除对应WS**。参考地址： https://www.freebuf.com/articles/web/339361.html
+
+参考检测代码如下，?name=【websocket服务名字】即可删除对应WS服务
+
+```java
+<%@ page import="org.apache.tomcat.websocket.server.WsServerContainer" %>
+<%@ page import="javax.websocket.server.ServerContainer" %>
+<%@ page import="java.lang.reflect.Field" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.Set" %>
+<%@ page import="java.util.Iterator" %>
+<%@ page import="javax.websocket.server.ServerEndpointConfig" %><%-- Created by IntelliJ IDEA. --%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%
+ // 通过 request 的 context 获取 ServerContainer
+ WsServerContainer wsServerContainer = (WsServerContainer) request.getServletContext().getAttribute(ServerContainer.class.getName());
+ // 利用反射获取 WsServerContainer 类中的私有变量 configExactMatchMap
+ Class<?> obj = Class.forName("org.apache.tomcat.websocket.server.WsServerContainer");
+ Field field = obj.getDeclaredField("configExactMatchMap");
+ field.setAccessible(true);
+ Map<String, Object> configExactMatchMap = (Map<String, Object>) field.get(wsServerContainer);
+ // 遍历configExactMatchMap, 打印所有注册的 websocket 服务
+ Set<String> keyset = configExactMatchMap.keySet();
+ Iterator<String> iterator = keyset.iterator();
+ while (iterator.hasNext()){
+  String key = iterator.next();
+  Object object = wsServerContainer.findMapping(key);
+  Class<?> wsMappingResultObj = Class.forName("org.apache.tomcat.websocket.server.WsMappingResult");
+  Field configField = wsMappingResultObj.getDeclaredField("config");
+  configField.setAccessible(true);
+  ServerEndpointConfig config1 = (ServerEndpointConfig)configField.get(object);
+  Class<?> clazz = config1.getEndpointClass();
+  // 打印 ws 服务 url， 对应的 class
+  out.println(String.format("websocket name：%s, websocket class: %s", key, clazz.getName()));
+ }
+ // 如果参数带name， 删除该服务，名字为name参数值
+ if(request.getParameter("name")!= null){
+  configExactMatchMap.remove(request.getParameter("name"));
+  out.println(String.format("delete ws service: %s", request.getParameter("name")));
+ }
+%>
+```
+
+## **payload分析**
+
+分析：
+
+一般来讲内存马有两种，动态注册组件（Filter类和框架类），和字节码注入（需要jar包），并且都是基于http通信的
+
+ws内存马不太一样，利用的是本身就有的ws，只是添加了一个Endpoint，在Endpoint运行的时候接受命令执行并返回
+
+具体：
+
+先自定义一个Endpoint类，这个Endpoint继承类javax.websocket.Endpoint并实现其方法，在session里重写指定接收消息的方法OnMessage，把RCE调用写在里面。
+
+拿到ServletContext，创建一个configEndpoint，把自定义的Endpoint放入其中，并拿到ServletContext里的ServerContainer，最后将configEndpoint作为端点动态加入到ServerContainer中
+
+## **内存马常规检测手法**
+
+1.javaagent，可以对比启动前后的字节码，如果不一致就是被重载过，也可以进一步匹配重载的字节码是否有敏感调用，如Runtime、ProcessBulider等
+
+2.动态添加型，不管是注册的是Servlet还是Filter、Listener、Controller，其都要**创建新的类并继承相应组件的父类**，新创建的类加载到jvm内存中之后，我们就可以通过java tools中的Instrumentation.**getAllLoadedClasses**()获取到，
+
+1.首先先判断加载到内存中的类，从类继承的角度去判断是否继承了如javax.servlet.Servlet、javax.servlet.Filter、javax.servlet.ServletRequestListener接口
+
+2.然后是检测内存马的特征：
+
+- 类名关键词检测，检测类名是否存在如：shell、memshell、noshell、cmd等敏感词
+- 对关键方法字节码实现关使用键词检测，检测类关键方法字节码实现中是否存在一些敏感词：如cmd、shell、exec；如：在Filter类里面的doFilter方法，Servlet里面的services方法。
+- 命令执行类检测，检测器字节码实现中是否存在调用Runtime、ProcessBuilder类可以用来执行命令的类
+
+## **Websocket相关知识**
+
+JSR365是java制定的websocket编程规范，属于Java EE 7的一部分，所以要实现websocket内存马并不需要任何第三方依赖
+
+根据JSR356的规定，Java WebSocket应用由一系列的WebSocket Endpoint组成。Endpoint是一个Java对象，代表WebSocket链接的一端，对于服务端，我们可以视为处理具体WebSocket消息的接口，就像Servlet之于HTTP请求
+
+一样（不同之处在于Endpoint每个链接一个实例）
+
+可以通过两种方式定义Endpoint，第一种是编程式，即继承类javax.websocket.Endpoint并实现其方法。第二种是注解式，即定义一个POJO对象，为其添加Endpoint相关的注解
+
+Endpoint的生命周期方法如下：
+
+- onOpen：当开启一个新的会话时调用。这是客户端与服务器握手成功后调用的方法。等同于注解@OnOpen。
+- onClose：当会话关闭时调用。等同于注解@OnClose。
+- onError：当链接过程中异常时调用。等同于注解@OnError。
+
+当客户端链接到一个Endpoint时，服务器端会为其创建一个唯一的会话（javax.websocket.Session）。会话在WebSocket握手之后创建，并在链接关闭时结束。当生命周期中触发各个事件时，都会将当前会话传给Endpoint。 
+
+通过为Session添加MessageHandler消息处理器来接收消息。当采用注解方式定义Endpoint时，我们还可以通过@OnMessage指定接收消息的方法。发送消息则由RemoteEndpoint完成，其实例由Session维护，根据使用情况，我们可以通过Session.getBasicRemote获取同步消息发送的实例或者通过Session.getAsyncRemote获取异步消息发送的实例
+
+WebSocket通过javax.websocket.WebSocketContainer接口维护应用中定义的所有Endpoint。它在每个Web应用中只有一个实例，类似于传统Web应用中的ServletContext。
+
+# 常规内存马
+
+**根据注入方式，可以分为两类**
+
+**一类是动态注册组件型，Servlet三个组件，或者框架组件，起点是获取context**
+
+**一类是agent型注入，修改JVM字节码，需要执行jar包**
+
+## **动态注册组件型**
+
+### **1.动态添加Servlet组件的内存马**
+
+**主要是通过jsp实现各个组件的动态注册**
+
+#### **动态注册Servlet**
+
+1.通过反射从request中（因为是jsp可以直接拿到request）获取 上下文Context，
+
+2.注册一个Servlet重写其Service方法，并执行命令，通过response返回
+
+3.创建Wrapper并利用Servlet初始化
+
+4.添加路由，为Wrapper对象添加map映射
+
+#### **动态注册Filter**
+
+1.通过反射获得 Context
+
+2.利用Context获取FilterConfig对象
+
+3.创建恶意Filter并重写doFilter，执行命令并通过response返回，最后filterChain传入后面的filter
+
+4.创建FilterDef对象并利用刚刚创建的Filter对象来初始化，并新建一个FilterMap对象，添加URL映射到FilterDef对象
+
+5.利用FilterConfig，且初始化FilterDef，将其加入FilterConfig中，等待filterChain.dofilter调用
+
+**Jetty容器Filter型内存马注入思路：**
+
+Apache Solr
+
+找到该webapp的上下文context，一般通过该context上下文可获取注入内存马相关的各种对象。在Jetty容器中，web相关的context类为org.eclipse.jetty.webapp.WebAppContext,可通过org.eclipse.jetty.webapp.WebAppClassLoader获取，WebAppClassLoader的_context属性即为WebAppContext，WebAppContext包含的属性中，_servletHandler是注入Filter的关键属性。_servletHandler是org.eclipse.jetty.servlet.ServletHandler类的实例，通过org.eclipse.jetty.servlet.ServletHandler的addFilterWithMapping()方法即可实现注入自定义Filter。
+
+流程简单为：
+
+```java
+org.eclipse.jetty.webapp.WebAppClassLoader webAppClassLoader=(org.eclipse.jetty.webapp.WebAppClassLoader)Thread.currentThread().getContextClassLoader();
+
+org.eclipse.jetty.webapp.WebAppContext webAppContext=(org.eclipse.jetty.webapp.WebAppContext)webAppClassLoader._context;
+
+org.eclipse.jetty.servlet.ServletHandler servletHandler=(org.eclipse.jetty.servlet.ServletHandler)webAppContext._servletHandler;
+
+servletHandler.addFilterWithMapping("FilterClassName","/*", EnumSet.of(DispatcherType.REQUEST));
+```
+
+#### **动态注册Listener**
+
+1.反射获取Context
+
+2.创建ServletRequestListener对象并重写其requestDestroyed，在其中实现命令执行并通过response回显
+
+3.将创建的ServletRequestListener对象通过StandardContext添加到事件监听中去
+
+### **2.从框架添加**
+
+#### **springboot** 
+
+##### **通过动态注册Controller来实现内存马**
+
+1.从springboot中获取context
+
+2.定义好注入controller的路径和处理请求使用的逻辑（方法），具体是使用一个 Eval.class,通过反射获取其实现的一个恶意方法
+
+3.利用mappingHandlerMapping.registerMapping()方法将其注入到处理中去
+
+具体场景的使用我们可以将其转换成jsp，或者转换成一个恶意类，通过反序列等造成任意代码执行的sink点来发起利用从而实现内存马
+
+##### **修改现有的controller**
+
+参考： https://xz.aliyun.com/t/10583#toc-0
+
+可以在一定程度上防检测
+
+需要找到一处接口：通常情况下返回一个固定的值，不然不好伪装
+
+把**反射调用的方法改成特殊的方法**
+
+## **基于Javaagent和Javassist技术的内存马实现**
+
+如果能找到一些关键类，这些关键类是Tomcat或相关容器处理请求的必调用类，或者说通用类，就可以完全摆脱url的限制，再通过javaagent和javassist实现运行时动态修改字节码来完成类的修改和重载，从中修改某方法的实现逻辑，嵌入命令执行并且回显，同样可以实现内存马
+
+比如在Tomcat中：
+
+Filter的实现，是一个Filterchain的链式调用，对请求做层层过滤：上一个filter调用该链的下一个filter的时候是通过filterchain.doFilter方法实现的
+
+跟进是调用一个实现FilterChain接口的ApplicationFilterChain类的doFilter方式，其实现如下，正常情况下其实现是由InternalDoFilter（）实现的，并传入其request and response对象
+
+所以我们要找的通用类，必经方法可以是ApplicationFilterChain类的internalDoFilter（request，response）方法：
+
+具体实现可以参考 https://xz.aliyun.com/t/11003#toc-11
+
+**哥斯拉选择的是动态注册Servlet组件来实现内存马的注入，而冰蝎则是通过javaagent技术配合javassist技术来实现内存马的注入**
+
+### **冰蝎（javaagent）**
+
+冰蝎用的也是javaagent而不是动态注册
+
+利用其本身的上传功能把jar包上传并用loadagent加载jar包注入 
+
+配合javassist来实现运行时动态字节码修改，需要注意的是这里使用Instrumentation的redefineclasses方法，和上文介绍javaagent技术小demo使用的是相同的，同时这里选取的通用类是jakarta.servlet.http.HttpServlet
+
+### **哥斯拉（动态注册组件）**
+
+**流程**
+
+1、先传首次加载使用的payload类，并初始化
+
+2、注入内存马
+
+3、卸载内存马（删除掉该servlet所在的Wrapper对象即可）
+
+和冰蝎不同哥斯拉并不是每次都发送一个构造好的payload
+
+哥斯拉的模式是，第一次基本加载全部功能要使用payload到服务端中session中存储并使用，所以在首次连接的时候发送的加密流量会比较大，后续的话就基本就是加密传输相关函数名和参数调用
+
+第一次payload类叫NullsFailProvider，和冰蝎实现payload一样，里面重写了equal和toString等方法来用于命令执行以及回显，但不同的是其继承了Classload类，通过其继承的defineClass方法可以来实现任意恶意字节码恶意类的对象实例的获取（在服务端实现中当非首次加载的时候服务器端判读不是首次加载则不会做特殊处理，所以后续扩展或者添加恶意类就只能通过这个来实现了） 
+
+## **检测、查杀**
+
+**总的来讲，所有内存马都可以通过javaagent的方式进行查杀，针对添加组件型的还可以利用API进行查杀**
+
+### **javaagent类型**
+
+通过javassist获取对应要检测类的原始字节码, 对比启动前后做字节码的，如果不一致就是被重载过，也可以进一步匹配重载的字节码是否有敏感调用，如Runtime、ProcessBulider等
+
+细节： https://xz.aliyun.com/t/11003#toc-15
+
+redefineClasses方法重载过的类，其重载后的类的字节码无法在下一次调用redefineClasses或retransformClasses中获取到，所以我们就没办法获取到其字节码并做过滤以及检测；但是被retransformClasses方法重载后的类，该类的字节码可以被下次重载时调用，这也是为什么最后冰蝎在其agent内存马实现的时候使用redefineClass方法的原因，这样可以躲避javaagent技术实现的查杀
+
+**内存马通过Instrumetation.redefineClasses方法实现的该怎么检测到**
+
+一般我们想要实现dump内存中的class的方法有两种：
+
+- 第一种就是上文提到的用agent attatch     到进程，然后利用 Instrumentation和 ClassFileTransformer就可以获取     到类的字节码了，但是由于该内存马使用redefineClasses实现的一个特殊性，该方法不能获取到类的字节码。
+- 第二种就是使用 sd-jdi.jar里的工具
+- 第二种可以检测 
+
+### **动态添加型**
+
+不管是注册的是Servlet还是Filter、Listener、Controller，其都要创建新的类并继承相应组件的父类，新创建的类加载到jvm内存中之后，我们就可以通过java tools中的Instrumentation.getAllLoadedClasses()获取到，所以这两类内存马也可以通过javaagent技术来实现查杀，只是获取过后的条件有变化：
+
+1.首先先判断加载到内存中的类，从类继承的角度去判断是否继承了如javax.servlet.Servlet、javax.servlet.Filter、javax.servlet.ServletRequestListener接口
+
+或者以下判断条件：
+
+新增的或修改的；没有对应class文件的；xml配置中没注册的；冰蝎等常见工具使用的；filterchain中排第一的filter类
+
+2.然后是检测内存马的特征：
+
+- 类名关键词检测，检测类名是否存在如：shell、memshell、noshell、cmd等敏感词
+- 对关键方法字节码实现关使用键词检测，检测类关键方法字节码实现中是否存在一些敏感词：如cmd、shell、exec；如：在Filter类里面的doFilter方法，Servlet里面的services方法。
+- 命令执行类检测，检测器字节码实现中是否存在调用Runtime、ProcessBuilder类可以用来执行命令的类
+
+可以修改其实现内存马的字节码，修改为一个无害的代码
+
+所以javaagent技术和javassist技术结合再加上sd-jdi.jar便可以完成全部类型的内存马的检测和清除，这里指没有实现反查杀手段的内存马
+
+## **反查杀**
+
+主要是阻止javaagent的加载
+
+### **冰蝎（删除 /tmp/.java_pid+{pid}文件）**
+
+可避免目标JVM进程被注入，可避免内存查杀插件注入，同时容器重启前内存马也无法再次注入），这个操作可以杜绝内存马的查杀并且保证之后agent型内存马注入不进来了
+
+**redefineClass实现的agent型的内存马的查杀**的时候提到从内存中dump出来class字节码的方法有两种：
+
+1、javaagent Instrumentation配合java.tools vm实现的attach（**agent型内存马中实现使用的attach模式**）
+
+2、sd-jdi.jar工具
+
+**其实这就是Java里面的两种Attach机制**：第一种是**VirtualMachine.attach（Attach到Attach Listener线程后执行有限命令）**；第二种是**SA工具的attach**
+
+**VirtualMachine.attach方法的实现：**
+
+**（1）信号机制**
+
+JVM启动的时候并不会马上创建Attach Listener线程，而是通过另外一个线程Signal Dispatcher在接收到信号处理请求（如jstack，jmap等）时创建临时socket文件/tmp/.java_pid并创建Attach Listener线程（external process会先发送一个**SIGQUIT**信号给target VM process，target VM会创建一个**Attach Listener**线程）；
+
+**（2）Unix domain socket**
+
+Attach Listener线程会通过Unix domain socket与external process建立连接，之后就可以基于这个socket进行通信了。
+
+创建好的Attach Listener线程会负责执行这些命令（从队列里不断取AttachOperation，然后找到请求命令对应的方法进行执行，比如jstack命令，找到 { “threaddump”, thread_dump }的映射关系，然后执行thread_dump方法）并且把结果通过**.java_pid**文件返回给发送者。
+
+整个过程中，会有两个文件被创建：
+
+.attach_pid<pid>，external process会创建这个文件，为的是触发Attach Listener线程的创建，因为SIGQUIT信号不是只有external process才会发的，通过这个文件来告诉target VM，有attach请求过来了（如果.attach_pid<pid>创建好了，说明Attach Listener线程已经创建成功）。相关代码在[LinuxVirtualMachine.java](https://link.jianshu.com/?t=http%3A%2F%2Fhg.openjdk.java.net%2Fjdk7u%2Fjdk7u%2Fjdk%2Ffile%2F70e3553d9d6e%2Fsrc%2Fsolaris%2Fclasses%2Fsun%2Ftools%2Fattach%2FLinuxVirtualMachine.java%23l280)中；
+
+.java_pid<pid>，target VM会创建这个文件，这个是因为Unix domain socket本身的实现机制需要去创建一个文件，通过这个文件来进行IPC。相关代码在[attachListener_linux.cpp](https://link.jianshu.com/?t=http%3A%2F%2Fhg.openjdk.java.net%2Fjdk7u%2Fjdk7u%2Fhotspot%2Ffile%2F2cd3690f644c%2Fsrc%2Fos%2Flinux%2Fvm%2FattachListener_linux.cpp%23l172)中。
+
+其中的<pid>都是target VM的pid。
+
+简单来说就是
+
+使用VirtualMachine.attach时，jvm线程之间的通信管道的建立要用到.java_pid<pid>这个文件，如果这个文件被干掉了，就阻止和JVM进程通信，从而禁止了Agent的加载。Agent无法注入，上文提到利用改技术实现的检测内存马也就无法实现了，从而实现了反查杀
+
+### **Zhouyu（pass掉实现相关接口的类）**
+
+通过对加载类的限制，pass掉实现ClassFileTransformer接口的类，从而禁止javaagent的加载，从而阻拦利用javaagent技术实现的内存马检测手段
+
+周瑜内存马的方法在于，如果发现某个类继承自ClassFileTransformer，则将其字节码修改为空。但是在这里并不会影响JVM加载一个新的javaagent。周瑜内存马该功能只会破坏 rasp的正常工作。周瑜内存马正常通过javaagent加载并查杀即可，不会受到任何影响的。或者，我们也可以通过redefineClass的方法去修改类的字节码
+
+## **复活**
+
+设置Java虚拟机的关闭钩子ShutdownHook来达到内存马复活，将内存中的agent.jar 、inject.jar还原到文件中去（冰蝎agent内存马注入之后，其inject.jar和agent.jar为了隐蔽都会被干掉，但是其实读到内存里面了）
+
+并且在其startInject（）方法中调用Runtime.getRuntime.exec来运行 重加载javaagent，从而达到持久化和复活的目的
+
+# 内存马基础
+
+主要是Tomcat相关
+
+## **4 类容器组件**
+
+Engine、Host 、Context 、 Wrapper
+
+- Engine（org.apache.catalina.core.StandardEngine）：最大的容器组件，可以容纳多个     Host。
+- Host（org.apache.catalina.core.StandardHost）：一个     Host 代表一个虚拟主机，一个Host可以包含多个 Context。
+- Context（org.apache.catalina.core.StandardContext）：一个     Context 代表一个 Web 应用，其下可以包含多个 Wrapper。
+- Wrapper（org.apache.catalina.core.StandardWrapper）：一个     Wrapper 代表一个 Servlet
+
+（**重点** ：想要动态的去注册Servlet组件实现过程中的关键之一就是如何获取Wrapper对像，再往上也就是如何获取到Context对象，从而掌握整个Web应用）。
+
+## **Servlet的三大基础组件**
+
+处理请求时，处理顺序如下：
+
+请求 → Listener → Filter → Servlet
+
+- Servlet:     最基础的控制层组件，用于动态处理前端传递过来的请求，每一个Servlet都可以理解成运行在服务器上的一个java程序；生命周期：从Tomcat的Web容器启动开始，到服务器停止调用其destroy()结束；驻留在内存里面
+- Filter：过滤器，过滤一些非法请求或不当请求，一个Web应用中一般是一个filterChain链式调用其doFilter()方法，存在一个顺序问题。
+- Listener：监听器，以ServletRequestListener为例，ServletRequestListener主要用于监听ServletRequest对象的创建和销毁,一个ServletRequest可以注册多个ServletRequestListener接口（都有request来都会触发这个）。
+
+动态注册组件类内存马的一个关键点就在于获取Context
+
+### **Tomcat中Context对象的获取**
+
+对于Tomcat来说，一个Web应用中的Context组件为org.apache.catalina.core.StandardContext对象
+
+#### 获取StandardContext对象
+
+##### **有requet对象的时候**
+
+当request存在的时候我们可以通过反射来获取StandardContext对象：
+
+Tomcat中Web应用中获取的request.getServletContext是ApplicationContextFacade对象。该对象对ApplicationContext进行了封装，而ApplicationContext实例中又包含了StandardContext实例
+
+由于StandardContext 是private，需要set一下
+
+```java
+private final StandardContext context;
+
+//获取到applicationcontextFacade
+ServletContext servletContext = request.getServletContext();
+
+//利用反射获取ApplicationContext对象 
+Field fieldApplicationContext=servletContext.getClass().getDeclaredField("context");
+
+//使私有可获取 
+fieldApplicationContext.setAccessible(true);
+
+//获取到ApplicationContext对象
+ApplicationContext applicationContext=(ApplicationContext)fieldApplicationContext.get(servletContext);
+    
+//利用反射获取StandardContext对象
+Field fieldStandardContext=applicationContext.getClass().getDeclaredField("context");
+    
+//使私有可获取
+fieldStandardContext.setAccessible(true);
+    
+//获取到StandardContext对象
+StandardContext standardContext=(StandardContext)fieldStandardContext.get(applicationContext);
+```
+
+
+
+##### **没有request对象的时候**
+
+没有就找一个request
+
+1.不存在request的时候从currentThread中的ContextClassLoader中获取（适用Tomcat 8，9）
+
+11开始好像就不能读loader了？
+
+没有request对象，那就先找出来一个request对象即可，由于Tomcat处理请求的线程中，存在ContextClassLoader对象，而这个对象的resources属性中又保存了StandardContext对象：
+
+org**.**apache**.**catalina**.**loader**.**WebappClassLoaderBase webappClassLoaderBase**=(**org**.**apache**.**catalina**.**loader**.**WebappClassLoaderBase**)**Thread**.**currentThread**().**getContextClassLoader**();**
+
+StandardContext standardContext **=** **(**StandardContext**)**webappClassLoaderBase**.**getResources**().**getContext**();**
+
+2、ThreadLocal中获取
+
+tomcat全系列通用get StandardContext技术
+
+参考地址： https://xz.aliyun.com/t/7388
+
+3、从MBean中获取
+
+可以利用MBean来实现获取StandardContext方法,但是要知道项目名称和host名称，参考地址：
+
+https://mp.weixin.qq.com/s/eI-50-_W89eN8tsKi-5j4g
+
+```java
+JmxMBeanServerjmxMBeanServer=(JmxMBeanServer)Registry.getRegistry(null,null).getMBeanServer();
+JmxMBeanServer jmxMBeanServer = (JmxMBeanServer) Registry.getRegistry(null, null).getMBeanServer();
+
+// 获取mbsInterceptor
+Field field = Class.forName("com.sun.jmx.mbeanserver.JmxMBeanServer").getDeclaredField("mbsInterceptor");
+field.setAccessible(true);
+Object mbsInterceptor = field.get(jmxMBeanServer);
+
+// 获取repository
+field = Class.forName("com.sun.jmx.interceptor.DefaultMBeanServerInterceptor").getDeclaredField("repository");
+field.setAccessible(true);
+Object repository = field.get(mbsInterceptor);
+
+// 获取domainTb
+field = Class.forName("com.sun.jmx.mbeanserver.Repository").getDeclaredField("domainTb");
+field.setAccessible(true);
+HashMap<String, Map> domainTb = (HashMap<string,map>)field.get(repository);
+StandardContext NamedObject nonLoginAuthenticator = domainTb.get("Catalina").get("context=/bx_test_war_exploded,host=localhost,name=NonLoginAuthenticator,type=Valve"// change for your
+```
+
+## **Javaagent技术和Javassist**
+
+### **Javassist技术**
+
+javassit直接使用java编码的形式，而不需要了解虚拟机指令，就能动态改变类的结构，或者动态生成类。 其主要就是使用四个类：ClassPoll,CtClass,CtMethod,CtField
+
+注意点：
+
+所引用的类型，必须通过ClassPool获取后才可以使用代码块中所用到的引用类型
+
+动态修改的类，必须在修改之前，jvm中不存在这个类的实例对象；修改方法的实现必须在修改的类加载之前进行
+
+### **Javaagent技术**
+
+内存马里javaagent主要用的技术是instrumentation，在虚拟机层次上实现一些类的修改和重加载，javaagent本身应用场景：
+
+- Java内存马的实现（这个往前回溯到最开始的利用的话就比较老了，18年的时候冰蝎的作者rebeyond师傅在其开源的项目memshell中就提到了）
+- 软件的破解，如专业版bp、专业版的IDEA都是通过javaagent技术实现的破解
+- 服务器项目的热部署，如jrebel，和一些实时监测服务请求的场景XRebel
+- Java中的这两年比较火的RASP技术的实现以及IAST，如火绒的洞态等都利用了javaagent技术
+
+#### **Javaagent的分类：**
+
+从agent加载的时间点可以将javaagent分为两类：preagent和agentmain
+
+##### preagent：
+
+jdk5引入，使用该技术可以生成一个独立于应用程序的代理程序agent，在代理的目标主程序运行之前加载，用来监测、修改、替换JVM上的一些程序，从而实现AOP（Aspect Oriented Programming，面向切面编程，通过预编译方式和运行其动态代理实现在不修改源代码的情况下给程序动态统一添加某种特定功能的一种技术）的功能。
+
+运行时间：在主程序运行之前执行
+
+##### agentmain:
+
+jdk6引入，agentmain模式可以说是premain的升级版本，它允许代理的目标主程序的jvm先行启动，再通过java stools的attach机制连接两个jvm
+
+运行时间：在主程序运行之后，运行中的时候执行
+
+由于内存马的注入场景通常是后者（agentmain），这里就主要说下后者的使用：
+
+**agentmain实例**：
+
+原理：Agent里面的agentmain()方法里面，调用Instrumentation对象的addTransformer方法，传入自定义的XXXTransformer对象，该对象要实现ClassFileTransformer接口，并重写其transform（）抽象方法，在jvm在运行main前加载解析系统class和app的class的时候调用ClassFileLoadHook回调从而执行transform函数，在该方法中对指定类的加载进行一些修改
+
+具体例子参考 https://xz.aliyun.com/t/11003#toc-5  以及 [**https://github.com/minhangxiaohui/Javaagent-Project**](https://github.com/minhangxiaohui/Javaagent-Project)
+
+agentmain方法，需要传入两个参数，参数类型分别是java.lang.String 和 java.lang.instrument.Instrumentation,第一个参数是运行agent传入的参数，第二个参数则是传入的Instrumentation对象，用来实现添加转换器以及进行转换的把柄（？），通过调用Instrumentation的addTransformer来添加自定义的转换器，其实就是通过Instrumentation的retransformClass或者redefinessClass实现对类的字节码修改，区别就是一个是修改一个是替换，这里我们使用retransformClass方法来实现，这两个方法的实现还有一个比较大的区别，涉及到内存马的检测技术的问题
+
+transformer()中动态修改相关类字节码内容时，对字节码操作的方式方式有两种
+
+ASM指令层次对字节码进行操作，操纵的级别是底层JVM的汇编指令级别，比较复杂，要动jvm的汇编指令，性能高但是复杂
+
+使用javassist技术其直接使用java编码形式，从而改变字节码，但jvm需要将java编码转换为汇编指令，因此性能会差一些
+
+准备好了要注入的程序agent，被注入程序main，此时还需要一个注入程序，这里我们通过java tools来实现对jvm的操作，简单来说，就是通过java tools中的VirtualMachine对象的loadAgent来注入agent程序
+
+# 小结
+
+这次算是解决了众多TODO中的一个，补上了一片Java安全的拼图。
+
+动态加载的机制给Java开发和维护者带来了许多便利，而本着“寇可往，吾亦可往”的思维，动态修改的机制也毫不意外的被用来种马和构建RASP，Java组件千千万，下次又有什么新花样呢？
+
+# 参考
+
+ws内存马参考：
+
+http://t.zoukankan.com/duanxz-p-5041110.html
+
+内存马代码实现参考：
+
+https://xz.aliyun.com/t/11003#toc-9
+
+https://github.com/feihong-cs/memShell
+
+https://xz.aliyun.com/t/11084#toc-19
+
+https://xz.aliyun.com/t/7388
+
+检测实现参考：
+
+https://github.com/c0ny1/java-memshell-scanner
+
+https://github.com/4ra1n/FindShell
+
+https://xz.aliyun.com/t/10910#toc-6
+
+https://gv7.me/articles/2020/filter-servlet-type-memshell-scan-capture-and-kill/
