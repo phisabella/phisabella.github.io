@@ -27,7 +27,9 @@ html,
     & > aside {
       position: absolute;
       width: map-get($layout, aside-width);
-      @include overflow(hidden);
+      /* Allow long TOC to scroll instead of being clipped. */
+      max-height: calc(100vh - #{map-get($layout, header-height)});
+      @include overflow(auto);
     }
   }
 }
